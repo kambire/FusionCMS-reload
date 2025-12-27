@@ -1,78 +1,130 @@
 # FusionCMS-reload
 
-Fork/reload de **FusionCMS** (basado en CodeIgniter + Smarty) orientado a desarrollo local rápido y a iterar sobre la tienda, permisos y ajustes de performance.
+**FusionCMS-reload** es un fork orientado a modernizar y facilitar el desarrollo local de FusionCMS (CodeIgniter + Smarty), con foco en una puesta en marcha reproducible y en mejoras prácticas sobre tienda/permisos/cachés.
 
-> Este repositorio **no es el proyecto original**. Abajo dejo los agradecimientos y enlaces al repositorio base y a sus desarrolladores.
+> Este repositorio **no es el proyecto original**. En la sección de Agradecimientos se referencia el repositorio base y a sus desarrolladores.
 
-## Objetivo
+## Contenido
 
-- Tener un entorno reproducible (Docker) para levantar FusionCMS en minutos.
-- Mejorar/ajustar UX de la tienda (layout tipo ecommerce) y facilitar pruebas.
-- Ajustar permisos/rutas y corregir problemas comunes de cachés en local.
+- [Visión](#visión)
+- [Requisitos](#requisitos)
+- [Instalación (clonar)](#instalación-clonar)
+- [Ejecución (Docker)](#ejecución-docker)
+- [Configuración sensible](#configuración-sensible)
+- [Cambios realizados](#cambios-realizados)
+- [Roadmap](#roadmap)
+- [Troubleshooting](#troubleshooting)
+- [Agradecimientos](#agradecimientos)
+
+## Visión
+
+- Reducir fricción para levantar FusionCMS en local (entorno reproducible).
+- Proveer una base ordenada para iterar sobre UX de tienda y ajustes de plataforma.
+- Mantener compatibilidad con el ecosistema del proyecto original, evitando exponer configuración sensible en Git.
 
 ## Requisitos
 
 - Docker Desktop (Windows)
 - Git
-- (Opcional) Node.js si querés compilar assets fuera del contenedor
+- (Opcional) Node.js: solo si necesitás trabajar con assets fuera del contenedor
 
-## Levantar el proyecto (Docker)
+## Instalación (clonar)
+
+1) Clonar el repositorio:
+
+```bash
+git clone https://github.com/kambire/FusionCMS-reload.git
+cd FusionCMS-reload
+```
+
+2) (Opcional) Revisar documentación del stack Docker:
+
+- Ver [docker/README.md](docker/README.md)
+
+## Ejecución (Docker)
 
 Desde la raíz del repo:
 
-- `docker compose up -d --build`
+```bash
+docker compose up -d --build
+```
 
-URLs:
+Servicios:
 
 - Sitio: http://localhost:8080/
 - phpMyAdmin: http://localhost:8081/ (host: `db`, user: `root`, pass: `root`)
 
-Notas:
+Notas operativas:
 
-- Las importaciones SQL del contenedor se ejecutan **solo la primera vez** (cuando el volumen de MySQL está vacío).
-- Para reiniciar DB desde cero: `docker compose down -v` y luego `docker compose up -d --build`.
+- Los scripts SQL de inicialización corren **solo** si el volumen de MySQL está vacío.
+- Reset completo de DB (borra datos):
 
-Más detalles en [docker/README.md](docker/README.md).
+```bash
+docker compose down -v
+docker compose up -d --build
+```
 
-## Configuración (importante)
+## Configuración sensible
 
-Por seguridad, este repo ignora archivos sensibles (no deberían subirse a Git):
+Por seguridad, este repositorio ignora archivos de configuración que suelen contener credenciales o secretos:
 
 - `application/config/database.php`
 - `application/config/fusion.php`
 
-Si estás clonando por primera vez, vas a tener que crearlos/configurarlos (o copiarlos desde los `.dist`/ejemplos del proyecto base) según tu entorno.
+Esto implica que:
 
-## Cambios realizados en este fork
+- En un clon nuevo vas a tener que crearlos/configurarlos para tu entorno.
+- Recomendación: basarte en los archivos de ejemplo del proyecto original o los `.dist` cuando existan.
 
-Alto nivel (enfocado en dev/local):
+## Cambios realizados
 
-- **Docker**: stack de desarrollo con PHP 8.3 + Apache + MySQL + phpMyAdmin.
-- **Rutas / Rewrite**: ajustes para que el routing funcione bien en local con Apache + `.htaccess`.
-- **Cachés**: limpieza/ajustes para evitar errores típicos de permisos/paths (por ejemplo, cache de HTMLPurifier en `writable/`).
-- **Tienda**:
-	- Layout tipo ecommerce con grilla (4 items por fila) y categorías.
-	- Ajustes de JS/CSS para mejorar presentación en el storefront.
-	- Seed de ejemplo para poblar categorías/items de prueba: `docker/mysql/seed_store_sample.sql`.
+Resumen (enfoque dev/local):
+
+- **Docker**: entorno listo con PHP 8.3 + Apache + MySQL + phpMyAdmin.
+- **Routing/Rewrite**: ajustes para que el enrutamiento funcione correctamente en local mediante `.htaccess`.
+- **Cachés**: ajustes para evitar errores comunes de permisos/paths (ej. cache de HTMLPurifier dentro de `writable/`).
+- **Store (Tienda)**:
+  - Layout tipo ecommerce: grilla (4 productos por fila) + categorías.
+  - Ajustes de CSS/JS para presentación y comportamiento.
+  - Seed de datos demo para pruebas visuales: `docker/mysql/seed_store_sample.sql`.
 - **Teleport**: validación/filtrado para bloquear el uso de “brackets Ulduar” en destinos.
 
-> Si querés una lista exacta por commit, revisá el historial de Git en GitHub.
+Para ver el detalle exacto, revisá el historial de commits en GitHub.
 
-## Proyectos a futuro (roadmap)
+## Roadmap
 
-Ideas/puntos pendientes (no necesariamente implementados todavía):
+Líneas de trabajo previstas (pueden cambiar):
 
-- Dejar un flujo de instalación más claro (local vs producción).
-- Consolidar y documentar permisos/ACL y visibilidad del menú de Admin.
-- Mejorar seeders/datos demo (tienda, usuarios, roles) sin tocar datos sensibles.
-- Estandarizar build de assets (cuando aplique) y documentar minify/cache.
-- Revisar compatibilidad/actualización incremental de dependencias.
+- Documentación de instalación separada para local vs producción.
+- Consolidación de permisos/ACL (incluyendo visibilidad de Admin y menú).
+- Mejoras en datasets demo (tienda/roles) sin comprometer datos sensibles.
+- Estandarización del flujo de assets/caché/minify para desarrollo.
+- Revisión incremental de dependencias y compatibilidad.
+
+## Troubleshooting
+
+1) “No veo mis cambios”
+
+- Si estás en Docker, confirmá que tu `docker-compose.yml` está montando los directorios de código (`application/`, `system/`, `index.php` y `.htaccess`).
+
+2) “No se reinicializa la DB”
+
+- MySQL solo ejecuta scripts de init con volumen vacío. Usá:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+3) Errores de caché/permisos
+
+- En local, confirmá que `writable/` exista y sea escribible para el contenedor/servidor.
 
 ## Agradecimientos
 
-Este proyecto existe gracias al trabajo del equipo y contribuyentes del **FusionCMS** original.
+Este fork se apoya en el trabajo del equipo y la comunidad del proyecto **FusionCMS**.
 
 - Repositorio original: https://github.com/FusionWowCMS/FusionCMS
-- Gracias a los desarrolladores y a la comunidad que mantiene el CMS y sus dependencias.
+- Gracias a los desarrolladores y contribuyentes originales por el CMS y el ecosistema.
 
-Si estás buscando la versión oficial/estable o querés contribuir al upstream, por favor usá el repositorio original.
+Si buscás la versión oficial/estable o querés contribuir al upstream, usá el repositorio original.
