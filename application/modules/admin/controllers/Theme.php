@@ -6,12 +6,12 @@ class Theme extends MX_Controller
 {
     public function __construct()
     {
+        parent::__construct();
+
         // Make sure to load the administrator library!
         $this->load->library('administrator');
 
-        parent::__construct();
-
-        require_once('application/libraries/ConfigEditor.php');
+        require_once(APPPATH . 'libraries/ConfigEditor.php');
 
         requirePermission("changeTheme");
     }
