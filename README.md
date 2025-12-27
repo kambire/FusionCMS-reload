@@ -1,5 +1,7 @@
 # FusionCMS-reload
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE.md)
+
 **FusionCMS-reload** es un fork orientado a modernizar y facilitar el desarrollo local de FusionCMS (CodeIgniter + Smarty), con foco en una puesta en marcha reproducible y en mejoras prácticas sobre tienda/permisos/cachés.
 
 > Este repositorio **no es el proyecto original**. En la sección de Agradecimientos se referencia el repositorio base y a sus desarrolladores.
@@ -126,5 +128,17 @@ Este fork se apoya en el trabajo del equipo y la comunidad del proyecto **Fusion
 
 - Repositorio original: https://github.com/FusionWowCMS/FusionCMS
 - Gracias a los desarrolladores y contribuyentes originales por el CMS y el ecosistema.
+
+### Autores & Contributors (proyecto original)
+
+El proyecto original existe gracias a:
+
+- [Jesper Lindström](https://github.com/jesperlindstrom) (FusionCMS)
+- [Xavier Geernick](https://github.com/XavierGeerinck)
+- [FusionGen](https://github.com/FusionGen/FusionGEN)
+
+Lista completa de contributors:
+
+- https://github.com/FusionWowCMS/FusionCMS/graphs/contributors
 
 Si buscás la versión oficial/estable o querés contribuir al upstream, usá el repositorio original.
