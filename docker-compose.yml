@@ -7,11 +7,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./index.php:/var/www/html/index.php
-      - ./.htaccess:/var/www/html/.htaccess
-      - ./application:/var/www/html/application
-      - ./system:/var/www/html/system
-      - ./writable:/var/www/html/writable
+      - ./:/var/www/html
     environment:
       # CodeIgniter/FusionCMS reads CI_ENVIRONMENT in index.php
       CI_ENVIRONMENT: development

@@ -225,7 +225,7 @@ $errorId = uniqid('error', true);
                     <tbody>
                         <tr>
                             <td style="width: 10em">Path</td>
-                            <td><?= esc(base_url() . get_instance()->uri->uri_string()) ?></td>
+                            <td><?= esc((string) $request->getUri()) ?></td>
                         </tr>
                         <tr>
                             <td>HTTP Method</td>

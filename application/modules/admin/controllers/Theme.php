@@ -4,6 +4,35 @@ use MX\MX_Controller;
 
 class Theme extends MX_Controller
 {
+    private function isDebug(): bool
+    {
+        try {
+            return (defined('ENVIRONMENT') && ENVIRONMENT === 'development')
+                && $this->input
+                && (bool) $this->input->get('debug');
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    private function debugDie(Throwable $e, string $context): void
+    {
+        // Always log the full exception.
+        if (function_exists('log_message')) {
+            log_message('error', "[admin/theme] {$context}: {$e->getMessage()}\n{$e->getTraceAsString()}");
+        }
+
+        if ($this->isDebug()) {
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo "[admin/theme] {$context}\n\n";
+            echo (string) $e;
+            exit;
+        }
+
+        // Keep existing UX for non-debug.
+        throw $e;
+    }
+
     public function __construct()
     {
         parent::__construct();
@@ -18,24 +47,28 @@ class Theme extends MX_Controller
 
     public function index()
     {
-        // Change the title
-        $this->administrator->setTitle("Select theme");
+        try {
+            // Change the title
+            $this->administrator->setTitle("Select theme");
 
-        // Prepare my data
-        $data = array(
-            'url' => $this->template->page_url,
-            'themes' => $this->getThemes(),
-            'current_theme' => $this->config->item('theme')
-        );
+            // Prepare my data
+            $data = array(
+                'url' => $this->template->page_url,
+                'themes' => $this->getThemes(),
+                'current_theme' => $this->config->item('theme')
+            );
 
-        // Load my view
-        $output = $this->template->loadPage("theme.tpl", $data);
+            // Load my view
+            $output = $this->template->loadPage("theme.tpl", $data);
 
-        // Put my view in the main box with a headline
-        $content = $this->administrator->box('Select theme', $output);
+            // Put my view in the main box with a headline
+            $content = $this->administrator->box('Select theme', $output);
 
-        // Output my content. The method accepts the same arguments as template->view
-        $this->administrator->view($content, "modules/admin/css/theme.css", "modules/admin/js/theme.js");
+            // Output my content. The method accepts the same arguments as template->view
+            $this->administrator->view($content, "modules/admin/css/theme.css", "modules/admin/js/theme.js");
+        } catch (Throwable $e) {
+            $this->debugDie($e, 'index');
+        }
     }
 
     private function getThemes()
@@ -80,18 +113,27 @@ class Theme extends MX_Controller
 
     public function set($theme = false)
     {
-        if (!$theme || !file_exists("application/themes/" . $theme)) {
-            die('Invalid theme');
+        try {
+            if (!$theme || !file_exists("application/themes/" . $theme)) {
+                if ($this->isDebug()) {
+                    header('Content-Type: text/plain; charset=UTF-8');
+                    echo "Invalid theme: " . (string) $theme;
+                    exit;
+                }
+                die('Invalid theme');
+            }
+
+            $fusionConfig = new ConfigEditor("application/config/fusion.php");
+            $fusionConfig->set('theme', $theme);
+            $fusionConfig->save();
+
+            $this->cache->delete('*.cache');
+            $this->cache->delete('search/*.cache');
+            $this->cache->delete('minify/*');
+
+            die('yes');
+        } catch (Throwable $e) {
+            $this->debugDie($e, 'set');
         }
-
-        $fusionConfig = new ConfigEditor("application/config/fusion.php");
-        $fusionConfig->set('theme', $theme);
-        $fusionConfig->save();
-
-        $this->cache->delete('*.cache');
-        $this->cache->delete('search/*.cache');
-        $this->cache->delete('minify/*');
-
-        die('yes');
     }
 }

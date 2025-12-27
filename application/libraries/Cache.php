@@ -32,34 +32,29 @@ class Cache
 
     private function createFolders()
     {
-        if (!file_exists("writable/cache")) {
-            mkdir("writable/cache");
-            fopen("writable/cache/index.html", "w");
+        $this->ensureDir('writable/cache');
+        $this->ensureDir('writable/cache/data');
+        $this->ensureDir('writable/cache/data/items');
+        $this->ensureDir('writable/cache/data/spells');
+        $this->ensureDir('writable/cache/data/search');
+        $this->ensureDir('writable/cache/templates');
+    }
+
+    private function ensureDir(string $path): void
+    {
+        if (!is_dir($path)) {
+            // Avoid warnings (which are converted to exceptions) under concurrency/bind-mount races.
+            @mkdir($path, 0777, true);
         }
 
-        if (!file_exists("writable/cache/data")) {
-            mkdir("writable/cache/data");
-            fopen("writable/cache/data/index.html", "w");
+        if (!is_dir($path)) {
+            // If it still doesn't exist, let the failure be explicit.
+            throw new RuntimeException('Unable to create cache directory: ' . $path);
         }
 
-        if (!file_exists("writable/cache/data/items")) {
-            mkdir("writable/cache/data/items");
-            fopen("writable/cache/data/items/index.html", "w");
-        }
-
-        if (!file_exists("writable/cache/data/spells")) {
-            mkdir("writable/cache/data/spells");
-            fopen("writable/cache/data/spells/index.html", "w");
-        }
-
-        if (!file_exists("writable/cache/data/search")) {
-            mkdir("writable/cache/data/search");
-            fopen("writable/cache/data/search/index.html", "w");
-        }
-
-        if (!file_exists("writable/cache/templates")) {
-            mkdir("writable/cache/templates");
-            fopen("writable/cache/templates/index.html", "w");
+        $index = rtrim($path, '/\\') . '/index.html';
+        if (!is_file($index)) {
+            @file_put_contents($index, '');
         }
     }
 
