@@ -1,0 +1,26 @@
+{
+	"name": "Character viewer",
+	"description": "Displays the character stats and items",
+	"version": "2.1.0",
+	"date": "2025-11-04",
+	"author": {
+		"name": "FusionCMS",
+		"website": "https:\/\/fusion-hub.com"
+	},
+
+	"permissions": {
+		"view": { "default": true, "description": "View the characters" }
+	},
+
+	"roles": {
+		"view": {
+			"description": "View the characters",
+
+			"permissions": {
+				"view": true
+			}
+		}
+	},
+
+	"enabled": true
+}

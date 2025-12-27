@@ -1,0 +1,25 @@
+*/config/development
+*/logs/log-*.php
+!*/logs/index.html
+*/cache/*
+!system/cache/*
+!*/cache/index.html
+!*/cache/.htaccess
+
+application/config/database.php
+application/config/fusion.php
+writable/*
+
+# Node / frontend dependencies
+node_modules/
+
+# OS/editor noise
+Thumbs.db
+*.log
+
+.php-cs-fixer.cache
+install/.lock
+/application/config/owner.php
+/vendor/ezyang/htmlpurifier/library/HTMLPurifier/DefinitionCache/
+/vendor/**/.git
+/.idea/

@@ -1,0 +1,26 @@
+{
+	"name": "Online players",
+	"description": "Displays all online characters",
+	"version": "3.0.0",
+	"date": "2025-05-22",
+	"author": {
+		"name": "FusionCMS",
+		"website": "https://github.com/FusionWowCMS/FusionCMS"
+	},
+
+	"permissions": {
+		"view": { "default": true, "description": "View the online players page" }
+	},
+
+	"roles": {
+		"view": {
+			"description": "View the online players page",
+
+			"permissions": {
+				"view": true
+			}
+		}
+	},
+	
+	"enabled": true
+}

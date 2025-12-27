@@ -1,0 +1,51 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: fusioncms-web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./index.php:/var/www/html/index.php
+      - ./.htaccess:/var/www/html/.htaccess
+      - ./application:/var/www/html/application
+      - ./system:/var/www/html/system
+      - ./writable:/var/www/html/writable
+    environment:
+      # CodeIgniter/FusionCMS reads CI_ENVIRONMENT in index.php
+      CI_ENVIRONMENT: development
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: fusioncms-db
+    command: --default-authentication-plugin=mysql_native_password --sql-mode=""
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: fusioncms
+      MYSQL_USER: fusion
+      MYSQL_PASSWORD: fusion
+    ports:
+      - "33060:3306"
+    volumes:
+      - fusioncms-mysql:/var/lib/mysql
+      - ./docker/mysql/init/00-acore-auth-wrapper.sql:/docker-entrypoint-initdb.d/00-acore-auth-wrapper.sql:ro
+      - ./acore_auth.sql:/docker-entrypoint-initdb.d/acore_auth.sql:ro
+      - ./application/modules/install/SQL/fusion_final_full.sql:/docker-entrypoint-initdb.d/01-fusioncms.sql:ro
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: fusioncms-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+volumes:
+  fusioncms-mysql:

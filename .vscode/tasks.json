@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "FusionCMS: Docker Up (build)",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "up", "--build", "-d"],
+      "problemMatcher": []
+    },
+    {
+      "label": "FusionCMS: Docker Down",
+      "type": "shell",
+      "command": "docker",
+      "args": ["compose", "down"],
+      "problemMatcher": []
+    },
+    {
+      "label": "FusionCMS: Docker Logs (web)",
+      "type": "shell",
+      "command": "docker",
+      "args": ["logs", "-f", "fusioncms-web"],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "FusionCMS: Docker Logs (db)",
+      "type": "shell",
+      "command": "docker",
+      "args": ["logs", "-f", "fusioncms-db"],
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Keep Docker build context small
+.git
+.github
+.vscode
+node_modules
+writable/cache
+writable/logs
+writable/debugbar
+writable/uploads
+writable/backups
+writable/*.log
+vendor
+*.zip
+*.tar
+*.tar.gz
+*.7z

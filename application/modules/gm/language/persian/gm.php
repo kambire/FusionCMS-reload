@@ -1,0 +1,56 @@
+<?php
+
+$lang['invalid'] = "مقادیر نامعتبر";
+$lang['message_too_long'] = "پیام خیلی طولانی است باید کمتر از 8000 کاراکتر باشد.";
+$lang['kick'] = "بیرون انداختن یک بازیکن";
+$lang['ban'] = "مسدود کردن یک حساب کاربری";
+$lang['ticket'] = "تیکت";
+$lang['time'] = "زمان";
+$lang['message'] = "پیام";
+$lang['by'] = "توسط";
+$lang['view'] = "مشاهده";
+$lang['hide'] = "مخفی";
+$lang['close'] = "بستن تیکت";
+$lang['answer'] = "پاسخ";
+$lang['unstuck'] = "Unstuck";
+$lang['send_item'] = "ارسال آیتم";
+$lang['no_tickets'] = "بدون تیکت";
+$lang['account_name'] = "نام اکانت";
+$lang['ban_reason'] = "دلیل مسدود شدن";
+$lang['account'] = "حساب";
+$lang['has_been_banned'] = "ممنوع شده";
+$lang['character_name'] = "نام شخصیت";
+$lang['character_has_been_kicked'] = "شخصیت بیرون انداخته شده";
+$lang['close_ticket'] = "آیا مطمئن هستید که می خواهید این تیکت را ببندید؟";
+$lang['close_short'] = "بستن";
+$lang['ban_short'] = "ممنوع کردن";
+$lang['kick_short'] = "بیرون انداختن";
+$lang['send'] = "ارسال";
+$lang['mail_sent'] = "نامه ارسال شده است";
+$lang['teleported'] = "شخصیت تله پورت شده است";
+$lang['must_be_offline'] = "شخصیت باید آفلاین باشد";
+$lang['item_sent'] = "آیتم ارسال شده است";
+
+$lang['table_command_rank'] = "رتبه";
+$lang['table_command'] = "کامند";
+$lang['table_help'] = "راهنما";
+
+$lang['ticket_list'] = "لیست تیکت ها";
+$lang['ban_list'] = "لیست بن ها";
+$lang['history_list'] = "تاریخچه";
+$lang['banned_account_list'] = "لیست اکانت های بن شده";
+$lang['banned_ip_list'] = "لیست آی پی های بن شده";
+$lang['gm_panel'] = "پنل GM";
+$lang['banned_account_list_active'] = "اکانت های بن شده فعال";
+$lang['banned_account_list_expired'] = "اکانت های بن شده منقضی شده";
+$lang['ip'] = "آی پی";
+$lang['ban_ip'] = "بن کردن یک آی پی";
+$lang['no_data'] = "دیتایی وجود ندارد";
+$lang['day'] = "روز";
+$lang['gm'] = "GM";
+$lang['action'] = "عملکرد";
+$lang['type'] = "نوع";
+$lang['affected'] = "هدف";
+$lang['banned_at'] = "بن شده در";
+$lang['unbanned_at'] = "آن بن می شود در";
+$lang['banned_by'] = "بن شده توسط";
