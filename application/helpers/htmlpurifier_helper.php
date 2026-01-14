@@ -49,27 +49,6 @@ if (!function_exists('html_purify')) {
                     show_error('The HTMLPurifier configuration labeled "'.htmlspecialchars($config, ENT_QUOTES, $ci->config->item('charset')).'" could not be found.');
             }
 
-            // HTMLPurifier writes definition cache to disk.
-            // In Docker, the vendor directory is typically read-only, so we must use writable/.
-            $writableBase = null;
-            if (defined('WRITEPATH')) {
-                $writableBase = rtrim(WRITEPATH, '/\\');
-            } elseif (defined('FCPATH')) {
-                $writableBase = rtrim(FCPATH, '/\\') . DIRECTORY_SEPARATOR . 'writable';
-            }
-
-            if ($writableBase) {
-                $purifierCacheDir = $writableBase . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'htmlpurifier';
-
-                if (!is_dir($purifierCacheDir)) {
-                    @mkdir($purifierCacheDir, 0777, true);
-                }
-
-                $config->set('Cache.DefinitionImpl', 'Serializer');
-                $config->set('Cache.SerializerPath', $purifierCacheDir);
-                $config->set('Cache.SerializerPermissions', 0777);
-            }
-
             $purifier = new HTMLPurifier($config);
             $clean_html = $purifier->purify($dirty_html);
         }

@@ -18,7 +18,6 @@ $lang['must_be_offline'] = "¡El personaje debe estar desconectado!";
 $lang['wrong_faction'] = "¡La ubicación que seleccionaste solo está disponible para la otra facción!";
 $lang['doesnt_exist'] = "¡La ubicación que seleccionaste no existe!";
 $lang['no_location'] = "¡La ubicación de teletransporte no se estableció!";
-$lang['blocked_location'] = "Esta ubicación está bloqueada por el servidor.";
 $lang['level_too_low'] = "El nivel de tu personaje es demasiado bajo para teletransportarse a esta ubicación.";
 $lang['select'] = "Seleccionar";
 $lang['selected'] = "Seleccionado";

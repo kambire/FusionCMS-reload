@@ -53,8 +53,7 @@ class Auth extends MX_Controller
             "has_smtp" => $this->config->item('has_smtp')
         ];
 
-        // Treat use_captcha as the master switch. If it's disabled, never show captcha.
-        if ($use_captcha) {
+        if ($use_captcha || (int)Services::session()->get('attempts') >= $this->config->item('captcha_attemps')) {
             $data["use_captcha"] = true;
         }
 
@@ -85,8 +84,7 @@ class Auth extends MX_Controller
 
         $use_captcha = $this->config->item('use_captcha');
         $captcha_type = $this->config->item('captcha_type');
-        // Treat use_captcha as the master switch. If it's disabled, never require captcha.
-        $show_captcha = ($use_captcha == true);
+        $show_captcha = $use_captcha == true || (int)Services::session()->get('attempts') >= $this->config->item('captcha_attemps');
 
         $this->form_validation->set_rules('username', 'username', 'trim|required|min_length[4]|max_length[24]|alpha_numeric');
         $this->form_validation->set_rules('password', 'password', 'trim|required|min_length[6]');
@@ -108,23 +106,13 @@ class Auth extends MX_Controller
             //Get the players IP address
             $ip_address = $this->input->ip_address();
 
-            $block_attempts = (int)$this->config->item('block_attemps');
-            $block_duration = (int)$this->config->item('block_duration');
-            $blocking_enabled = ($block_attempts > 0 && $block_duration > 0);
-
             //Check if the IP address has been blocked
             $find = $this->login_model->getIP($ip_address);
-
-            // If blocking is disabled in config, clear any old record so the user isn't stuck.
-            if (!$blocking_enabled && $find) {
-                $this->login_model->deleteIP($ip_address);
-                $find = 0;
-            }
 
             // Check attempts
             $this->increaseAttempts($ip_address);
 
-            if ($blocking_enabled && $find && !empty($find['block_until']) && (time() < $find['block_until']))
+            if ($find && (time() < $find['block_until']))
             {
                 // The IP address is blocked, calculate remaining minutes
                 $remaining_minutes = round(($find['block_until'] - time()) / 60);
@@ -160,24 +148,6 @@ class Auth extends MX_Controller
 
             $username = $this->input->post('username');
             $password = $this->input->post('password');
-
-            // If the external auth DB isn't configured (or lacks the `account` table),
-            // fail gracefully instead of throwing a 500.
-            try {
-                $probe = $this->external_account_model->getConnection()
-                    ->table(table('account'))
-                    ->select('1')
-                    ->limit(1)
-                    ->get();
-            } catch (Throwable $e) {
-                $data["messages"]["error"] = "La base de datos de cuentas (auth) no está configurada o falta la tabla 'account'.";
-                die(json_encode($data));
-            }
-
-            if (!$probe) {
-                $data["messages"]["error"] = "La base de datos de cuentas (auth) no está configurada o falta la tabla 'account'.";
-                die(json_encode($data));
-            }
 
             //Login
             $sha_pass_hash = $this->user->getAccountPassword($username, $password);
@@ -230,8 +200,8 @@ class Auth extends MX_Controller
     private function increaseAttempts($ip_address)
     {
         $find = $this->login_model->getIP($ip_address);
-
-        Services::session()->set('attempts', (int)Services::session()->get('attempts') + 1);
+        
+        Services::session()->set('attempts', Services::session()->get('attempts') + 1);
 
         if (!empty($find['attempts']))
         {
@@ -256,14 +226,10 @@ class Auth extends MX_Controller
         //Get new ip datas
         $find = $this->login_model->getIP($ip_address);
 
-        $block_attempts = (int)$this->config->item('block_attemps');
-        $block_duration = (int)$this->config->item('block_duration');
-        $blocking_enabled = ($block_attempts > 0 && $block_duration > 0);
-
-        if ($blocking_enabled && !empty($find['attempts']) && $find['attempts'] >= $block_attempts)
+        if (!empty($find['attempts']) && $find['attempts'] >= $this->config->item('block_attemps'))
         {
             //Block the IP address
-            $block_until = time() + ($block_duration * 60);
+            $block_until = time() + ($this->config->item('block_duration') * 60);
             $block_data = array(
                 'block_until' => $block_until
             );

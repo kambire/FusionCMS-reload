@@ -149,7 +149,7 @@ class Database extends BaseCollector
     public function display(): string
     {
         $data            = [];
-        $data['queries'] = array_map(static function (array $query) {
+        $data['queries'] = array_map(static function (array $query): array {
             $isDuplicate = $query['duplicate'] === true;
 
             $firstNonSystemLine = '';
@@ -224,7 +224,7 @@ class Database extends BaseCollector
         $this->getConnections();
 
         $queryCount      = count(static::$queries);
-        $uniqueCount     = count(array_filter(static::$queries, static fn ($query) => $query['duplicate'] === false));
+        $uniqueCount     = count(array_filter(static::$queries, static fn ($query): bool => $query['duplicate'] === false));
         $connectionCount = count($this->connections);
 
         return sprintf(

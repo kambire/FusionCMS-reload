@@ -63,7 +63,7 @@ $assets = [
                 'files' => array_merge(
                     [
                         # jQuery
-                        realpath(T_ROOT_PATH . '..' . DS . '..' . DS . 'js' . DS . 'jquery.min.js'),
+                        realpath(T_ROOT_PATH . '..' . DS . '..' . DS . '..' . DS . 'node_modules' . DS . 'jquery' . DS . 'dist' . DS . 'jquery.min.js'),
 
                         # CMS javascript files (Base libraries)
                         realpath(T_ROOT_PATH . '..' . DS . '..' . DS . 'js' . DS . 'flux.min.js'),

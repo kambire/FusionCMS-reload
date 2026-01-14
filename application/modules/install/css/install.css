@@ -6,9 +6,3 @@
 
 .m-0 {margin: 0 !important;}
 .text-nowrap {white-space: nowrap !important;}
-
-/* Installer overrides: keep layout consistent and avoid legacy light backgrounds */
-.box.big.step{width:100%;max-width:56rem;margin-left:auto;margin-right:auto}
-.installer_navigation{text-align:inherit;padding:0!important;margin-bottom:0!important}
-.how_to_box .content{background-color:transparent!important}
-.how_to_box img{max-width:100%;height:auto}

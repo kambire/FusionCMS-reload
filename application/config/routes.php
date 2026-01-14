@@ -117,7 +117,6 @@ $route['character_tooltip/(:num)/(:num)'] = "tooltip/character/$1/$2";
 $route['item/(:num)/(:num)'] = "item/index/$1/$2";
 
 // Admin
-$route['admin'] = "admin/admin";
 $route['admin/edit/save/(:any)'] = "admin/edit/save/$1";
 $route['admin/edit/saveSource/(:any)'] = "admin/edit/saveSource/$1";
 $route['admin/edit/(:any)'] = "admin/edit/index/$1";

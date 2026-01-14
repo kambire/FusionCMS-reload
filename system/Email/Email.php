@@ -410,7 +410,7 @@ class Email
     {
         $this->initialize($config);
         if (! isset(static::$func_overload)) {
-            static::$func_overload = (extension_loaded('mbstring') && ini_get('mbstring.func_overload'));
+            static::$func_overload = extension_loaded('mbstring') && ini_get('mbstring.func_overload');
         }
     }
 
@@ -463,7 +463,7 @@ class Email
 
         $this->setHeader('Date', $this->setDate());
 
-        if ($clearAttachments !== false) {
+        if ($clearAttachments) {
             $this->attachments = [];
         }
 
@@ -479,14 +479,14 @@ class Email
      */
     public function setFrom($from, $name = '', $returnPath = null)
     {
-        if (preg_match('/\<(.*)\>/', $from, $match)) {
+        if (preg_match('/\<(.*)\>/', $from, $match) === 1) {
             $from = $match[1];
         }
 
         if ($this->validate) {
             $this->validateEmail($this->stringToArray($from));
 
-            if ($returnPath) {
+            if ($returnPath !== null) {
                 $this->validateEmail($this->stringToArray($returnPath));
             }
         }
@@ -496,7 +496,7 @@ class Email
 
         if ($name !== '') {
             // only use Q encoding if there are characters that would require it
-            if (! preg_match('/[\200-\377]/', $name)) {
+            if (preg_match('/[\200-\377]/', $name) !== 1) {
                 $name = '"' . addcslashes($name, "\0..\37\177'\"\\") . '"';
             } else {
                 $name = $this->prepQEncoding($name);
@@ -504,9 +504,7 @@ class Email
         }
 
         $this->setHeader('From', $name . ' <' . $from . '>');
-        if (! isset($returnPath)) {
-            $returnPath = $from;
-        }
+        $returnPath ??= $from;
         $this->setHeader('Return-Path', '<' . $returnPath . '>');
         $this->tmpArchive['returnPath'] = $returnPath;
 
@@ -521,7 +519,7 @@ class Email
      */
     public function setReplyTo($replyto, $name = '')
     {
-        if (preg_match('/\<(.*)\>/', $replyto, $match)) {
+        if (preg_match('/\<(.*)\>/', $replyto, $match) === 1) {
             $replyto = $match[1];
         }
 
@@ -533,7 +531,7 @@ class Email
             $this->tmpArchive['replyName'] = $name;
 
             // only use Q encoding if there are characters that would require it
-            if (! preg_match('/[\200-\377]/', $name)) {
+            if (preg_match('/[\200-\377]/', $name) !== 1) {
                 $name = '"' . addcslashes($name, "\0..\37\177'\"\\") . '"';
             } else {
                 $name = $this->prepQEncoding($name);
@@ -751,7 +749,9 @@ class Email
     protected function stringToArray($email)
     {
         if (! is_array($email)) {
-            return (str_contains($email, ',')) ? preg_split('/[\s,]/', $email, -1, PREG_SPLIT_NO_EMPTY) : (array) trim($email);
+            return str_contains($email, ',')
+                ? preg_split('/[\s,]/', $email, -1, PREG_SPLIT_NO_EMPTY)
+                : (array) trim($email);
         }
 
         return $email;
@@ -836,7 +836,7 @@ class Email
      */
     public function setCRLF($CRLF = "\n")
     {
-        $this->CRLF = ($CRLF !== "\n" && $CRLF !== "\r\n" && $CRLF !== "\r") ? "\n" : $CRLF;
+        $this->CRLF = ! in_array($CRLF, ["\n", "\r\n", "\r"], true) ? "\n" : $CRLF;
 
         return $this;
     }
@@ -891,10 +891,10 @@ class Email
     protected function getContentType()
     {
         if ($this->mailType === 'html') {
-            return empty($this->attachments) ? 'html' : 'html-attach';
+            return $this->attachments === [] ? 'html' : 'html-attach';
         }
 
-        if ($this->mailType === 'text' && ! empty($this->attachments)) {
+        if ($this->mailType === 'text' && $this->attachments !== []) {
             return 'plain-attach';
         }
 
@@ -996,8 +996,8 @@ class Email
      */
     protected function getAltMessage()
     {
-        if (! empty($this->altMessage)) {
-            return ($this->wordWrap) ? $this->wordWrap($this->altMessage, 76) : $this->altMessage;
+        if ($this->altMessage !== '') {
+            return $this->wordWrap ? $this->wordWrap($this->altMessage, 76) : $this->altMessage;
         }
 
         $body = preg_match('/\<body.*?\>(.*)\<\/body\>/si', $this->body, $match) ? $match[1] : $this->body;
@@ -1009,7 +1009,7 @@ class Email
 
         $body = preg_replace('| +|', ' ', $body);
 
-        return ($this->wordWrap) ? $this->wordWrap($body, 76) : $body;
+        return $this->wordWrap ? $this->wordWrap($body, 76) : $body;
     }
 
     /**
@@ -1020,8 +1020,10 @@ class Email
      */
     public function wordWrap($str, $charlim = null)
     {
-        if (empty($charlim)) {
-            $charlim = empty($this->wrapChars) ? 76 : $this->wrapChars;
+        $charlim ??= 0;
+
+        if ($charlim === 0) {
+            $charlim = $this->wrapChars === 0 ? 76 : $this->wrapChars;
         }
 
         if (str_contains($str, "\r")) {
@@ -1032,7 +1034,7 @@ class Email
 
         $unwrap = [];
 
-        if (preg_match_all('|\{unwrap\}(.+?)\{/unwrap\}|s', $str, $matches)) {
+        if (preg_match_all('|\{unwrap\}(.+?)\{/unwrap\}|s', $str, $matches) >= 1) {
             for ($i = 0, $c = count($matches[0]); $i < $c; $i++) {
                 $unwrap[] = $matches[1][$i];
                 $str      = str_replace($matches[0][$i], '{{unwrapped' . $i . '}}', $str);
@@ -1234,7 +1236,9 @@ class Email
                     $this->headerStr .= $hdr;
                 }
 
-                static::strlen($body) && $body .= $this->newline . $this->newline;
+                if (static::strlen($body) > 0) {
+                    $body .= $this->newline . $this->newline;
+                }
 
                 $body .= $this->getMimeMessage() . $this->newline . $this->newline
                     . '--' . $lastBoundary . $this->newline
@@ -1273,7 +1277,7 @@ class Email
      */
     protected function attachmentsHaveMultipart($type)
     {
-        foreach ($this->attachments as &$attachment) {
+        foreach ($this->attachments as $attachment) {
             if ($attachment['multipart'] === $type) {
                 return true;
             }
@@ -1301,14 +1305,14 @@ class Email
                 . 'Content-Type: ' . $attachment['type'] . '; name="' . $name . '"' . $this->newline
                 . 'Content-Disposition: ' . $attachment['disposition'] . ';' . $this->newline
                 . 'Content-Transfer-Encoding: base64' . $this->newline
-                . (empty($attachment['cid']) ? '' : 'Content-ID: <' . $attachment['cid'] . '>' . $this->newline)
+                . (isset($attachment['cid']) && $attachment['cid'] !== '' ? 'Content-ID: <' . $attachment['cid'] . '>' . $this->newline : '')
                 . $this->newline
                 . $attachment['content'] . $this->newline;
         }
 
         // $name won't be set if no attachments were appended,
         // and therefore a boundary wouldn't be necessary
-        if (! empty($name)) {
+        if (isset($name)) {
             $body .= '--' . $boundary . '--';
         }
     }
@@ -1878,7 +1882,7 @@ class Email
      */
     protected function SMTPConnect()
     {
-        if (is_resource($this->SMTPConnect)) {
+        if ($this->isSMTPConnected()) {
             return true;
         }
 
@@ -1925,7 +1929,7 @@ class Email
             $context
         );
 
-        if (! is_resource($this->SMTPConnect)) {
+        if (! $this->isSMTPConnected()) {
             $this->setErrorMessage('The following SMTP error was encountered: ' . $errno . ' ' . $errstr);
 
             return false;
@@ -2157,12 +2161,16 @@ class Email
      */
     protected function getHostname()
     {
-        if (isset($_SERVER['SERVER_NAME'])) {
-            return $_SERVER['SERVER_NAME'];
+        $superglobals = service('superglobals');
+
+        $serverName = $superglobals->server('SERVER_NAME');
+        if (! in_array($serverName, [null, ''], true)) {
+            return $serverName;
         }
 
-        if (isset($_SERVER['SERVER_ADDR'])) {
-            return '[' . $_SERVER['SERVER_ADDR'] . ']';
+        $serverAddr = $superglobals->server('SERVER_ADDR');
+        if (! in_array($serverAddr, [null, ''], true)) {
+            return '[' . $serverAddr . ']';
         }
 
         $hostname = gethostname();
@@ -2257,7 +2265,7 @@ class Email
 
     public function __destruct()
     {
-        if (is_resource($this->SMTPConnect)) {
+        if ($this->isSMTPConnected()) {
             try {
                 $this->sendCommand('quit');
             } catch (ErrorException $e) {
@@ -2313,5 +2321,17 @@ class Email
         $this->tmpArchive = [];
 
         return $this->archive;
+    }
+
+    /**
+     * Checks if there is an active SMTP connection.
+     *
+     * @return bool True if SMTP connection is established and open, false otherwise
+     */
+    protected function isSMTPConnected(): bool
+    {
+        return $this->SMTPConnect !== null
+            && $this->SMTPConnect !== false
+            && get_debug_type($this->SMTPConnect) !== 'resource (closed)';
     }
 }

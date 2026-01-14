@@ -137,9 +137,7 @@ abstract class BasePreparedQuery implements PreparedQueryInterface
             $query->setDuration($startTime, $startTime);
 
             // This will trigger a rollback if transactions are being used
-            if ($this->db->transDepth !== 0) {
-                $this->db->transStatus = false;
-            }
+            $this->db->handleTransStatus();
 
             if ($this->db->DBDebug) {
                 // We call this function in order to roll-back queries
@@ -258,5 +256,13 @@ abstract class BasePreparedQuery implements PreparedQueryInterface
     public function getErrorMessage(): string
     {
         return $this->errorString;
+    }
+
+    /**
+     * Whether the input contain binary data.
+     */
+    protected function isBinary(string $input): bool
+    {
+        return mb_detect_encoding($input, 'UTF-8', true) === false;
     }
 }

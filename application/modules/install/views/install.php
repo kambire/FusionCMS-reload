@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 	<head>
         <meta charset="utf-8">
 		<title>Installation - FusionCMS</title>
@@ -23,14 +23,25 @@
 
 			$(document).ready(function()
 			{
-				Promise.resolve(Language.init())
-					.catch(() => {})
-					.finally(() => {
-						UI.initialize();
-						Ajax.initialize();
-						Memory.populate();
-					});
-			});
+				UI.initialize();
+				Ajax.initialize();
+				Memory.populate();
+
+                let theme=localStorage.getItem("mode")||" dark";
+                document.documentElement.classList.add(theme);
+
+                const Theme = {
+                    moon: $("#moon"), sun: $("#sun"), Light: function () {
+                        document.documentElement.classList.remove("dark"), document.documentElement.classList.add("light"), window.localStorage.setItem("mode", "light"), Theme.moon.removeClass("-translate-y-1/2").addClass("translate-y-[-150%]").removeClass("opacity-100").addClass("opacity-0"), Theme.sun.removeClass("translate-y-[-150%]").addClass("-translate-y-1/2").removeClass("opacity-0"), theme = "light"
+                    }, Dark: function () {
+                        document.documentElement.classList.remove("light"), document.documentElement.classList.add("dark"), window.localStorage.setItem("mode", "dark"), Theme.moon.addClass("-translate-y-1/2").removeClass("translate-y-[-150%]").addClass("opacity-100").removeClass("opacity-0"), Theme.sun.addClass("translate-y-[-150%]").removeClass("-translate-y-1/2").addClass("opacity-0"), theme = "dark"
+                    }
+                };
+                theme === "dark" ? Theme.Dark() : Theme.Light();
+
+                const modeBtn=document.getElementById("mode");modeBtn.onchange=e=>{
+                theme === "dark" ? Theme.Light():Theme.Dark()};
+			})
 		</script>
 	</head>
 
@@ -67,7 +78,7 @@
 							<img class="border-muted-200 dark:border-muted-700 flex w-56 items-center justify-center border-r pe-6" src="<?= base_url() . $INSTALL_PATH ?>images/fusion.svg" alt="FusionCMS">
 							<div class="hidden items-center gap-2 ps-6 font-sans sm:flex" _lang_='{"step": "{{step}}"}' _step_>
 								<p class="text-muted-500 dark:text-muted-400" _step_number_>{{step}} 1: </p>
-								<h2 class="text-muted-800 font-semibold dark:text-white" _step_name_>{{welcome}}</h2>
+								<h2 class="text-muted-800 font-semibold dark:text-white" _step_name_>{{language}}</h2>
 							</div>
 							<div class="relative hidden sm:block">
 								<button type="button" class="option-menu flex size-10 items-center justify-center">
@@ -78,36 +89,42 @@
 										<li id="1" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
 											<a href="#" class="router-link-active">
 												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 1: </p>
-												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{welcome}}</h4>
+												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{language}}</h4>
 											</a>
 										</li>
 										<li id="2" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
 											<a href="#">
 												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 2: </p>
-												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{requirements}}</h4>
+												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{introduction}}</h4>
 											</a>
 										</li>
 										<li id="3" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
 											<a href="#">
 												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 3: </p>
-												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{general}}</h4>
+												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{requirements}}</h4>
 											</a>
 										</li>
 										<li id="4" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
 											<a href="#">
 												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 4: </p>
-												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{database}}</h4>
+												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{general}}</h4>
 											</a>
 										</li>
 										<li id="5" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
 											<a href="#">
 												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 5: </p>
-												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{realms}}</h4>
+												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{database}}</h4>
 											</a>
 										</li>
 										<li id="6" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
 											<a href="#">
 												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 6: </p>
+												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{realms}}</h4>
+											</a>
+										</li>
+										<li id="7" class="hover:bg-muted-100 dark:hover:bg-muted-700 flex w-full items-center gap-2 rounded-lg px-3 py-2 font-sans disabled:cursor-not-allowed disabled:opacity-70">
+											<a href="#">
+												<p class="text-muted-500 dark:text-muted-400 text-xs">Step 7: </p>
 												<h4 class="text-muted-800 text-xs font-medium dark:text-white">{{complete}}</h4>
 											</a>
 										</li>
@@ -115,7 +132,19 @@
 								</ul>
 							</div>
 						</div>
-						<div class="flex items-center justify-end gap-4"></div>
+                        <div class="flex items-center justify-end gap-4">
+                            <label for="mode" class="nui-focus relative block h-9 w-9 shrink-0 overflow-hidden rounded-full transition-all duration-300 focus-visible:outline-2 dark:ring-offset-muted-900">
+                                <input type="checkbox" id="mode" class="absolute start-0 top-0 z-[2] h-full w-full cursor-pointer opacity-0">
+                                <span class="bg-white dark:bg-muted-800  border border-muted-300 dark:border-muted-700 relative block h-9 w-9 rounded-full">
+                                    <svg id="sun" viewbox="0 0 24 24" class="pointer-events-none absolute start-1/2 top-1/2 block h-5 w-5 text-yellow-400 transition-all duration-300 translate-x-[-50%] opacity-0 rtl:translate-x-[50%] translate-y-[-150%]">
+                                        <g fill="currentColor" stroke="currentColor" class="stroke-2"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></g>
+                                    </svg>
+                                    <svg id="moon" viewbox="0 0 24 24" class="pointer-events-none absolute start-1/2 top-1/2 block h-5 w-5 text-yellow-400 transition-all duration-300 translate-x-[-45%] opacity-100 rtl:translate-x-[45%] -translate-y-1/2">
+                                        <path fill="currentColor" stroke="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" class="stroke-2"></path>
+                                    </svg>
+                                </span>
+                            </label>
+                        </div>
 						<div class="absolute inset-x-0 bottom-0 z-10 w-full">
 							<div id="progressbar" aria-valuenow="14.285714285714285" aria-valuemax="100" class="nui-progress nui-progress-xs nui-progress-default nui-progress-primary nui-progress-full">
 								<div class="nui-progress-bar" style="width: 0;"></div>
@@ -127,9 +156,61 @@
 					<div class="mx-auto w-full max-w-7xl">
 						<div class="grid gap-8 sm:grid-cols-12">
 							<div class="col-span-12">
-													<div class="border-muted-200 dark:border-muted-700 dark:bg-muted-800 relative w-full border bg-white transition-all duration-300 rounded-md mt-10 mb-10">
-									<div class="mx-auto w-full max-w-4xl px-6 py-8">
-														<section class="box big step">
+								<div class="border-muted-200 dark:border-muted-700 dark:bg-muted-800 relative w-full border bg-white transition-all duration-300 rounded-md mt-10 mb-10">
+									<aside class="flex items-center justify-center py-8 mx-auto w-full max-w-md">
+										<section class="box big step">
+											<div class="flex flex-col py-2">
+												<img src="<?= base_url() . $INSTALL_PATH ?>images/fusion.svg">
+												<div class="mx-auto mt-4">
+													<div class="border-muted-200 dark:border-muted-700 dark:bg-muted-800 relative w-full border bg-white transition-all duration-300 rounded-md shadow-muted-300/30 dark:shadow-muted-800/30 shadow-xl p-6 mt-4">
+														<div class="mx-auto mb-4 max-w-xs text-center">
+															<p class="font-heading text-xxs font-medium leading-normal text-white"> {{language}}</p>
+														</div>
+														<div class="relative h-[calc(100%_-_64px)] w-full px-10">
+															<div class="grid grid-cols-4 py-6">
+																<div class="relative my-4 flex items-center justify-center px-3">
+																	<div class="relative">
+																		<input type="radio" id="language_selection_en" class="peer absolute start-0 top-0 z-20 h-full w-full cursor-pointer opacity-0" onclick="setLanguage('en')">
+																		<div class="border-muted-200 peer-checked:border-primary-500 dark:border-muted-600 flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300"><img class="h-10 w-10 rounded-full" src="<?= base_url() ?>application/images/flags2/en.svg" alt="flag icon"></div>
+																		<div class="bg-primary-500 dark:border-muted-800 absolute -end-1 -top-1 hidden h-7 w-7 items-center justify-center rounded-full border-4 border-white text-white peer-checked:flex">
+																			<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" class="icon h-3 w-3" width="1em" height="1em" viewBox="0 0 24 24">
+																				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path>
+																			</svg>
+																		</div>
+																	</div>
+																</div>
+																<div class="relative my-4 flex items-center justify-center px-3">
+																	<div class="relative">
+																		<input type="radio" id="language_selection_fa" class="peer absolute start-0 top-0 z-20 h-full w-full cursor-pointer opacity-0" onclick="setLanguage('fa')">
+																		<div class="border-muted-200 peer-checked:border-primary-500 dark:border-muted-600 flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300"><img class="h-10 w-10 rounded-full" src="<?= base_url() ?>application/images/flags2/ir.svg" alt="flag icon"></div>
+																		<div class="bg-primary-500 dark:border-muted-800 absolute -end-1 -top-1 hidden h-7 w-7 items-center justify-center rounded-full border-4 border-white text-white peer-checked:flex">
+																			<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" class="icon h-3 w-3" width="1em" height="1em" viewBox="0 0 24 24">
+																				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path>
+																			</svg>
+																		</div>
+																	</div>
+																</div>
+																<div class="relative my-4 flex items-center justify-center px-3">
+																	<div class="relative">
+																		<input type="radio" id="language_selection_pt-BR" class="peer absolute start-0 top-0 z-20 h-full w-full cursor-pointer opacity-0" onclick="setLanguage('pt-BR')">
+																		<div class="border-muted-200 peer-checked:border-primary-500 dark:border-muted-600 flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-lg transition-all duration-300"><img class="h-10 w-10 rounded-full" src="<?= base_url() ?>application/images/flags2/br.svg" alt="flag icon"></div>
+																		<div class="bg-primary-500 dark:border-muted-800 absolute -end-1 -top-1 hidden h-7 w-7 items-center justify-center rounded-full border-4 border-white text-white peer-checked:flex">
+																			<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" class="icon h-3 w-3" width="1em" height="1em" viewBox="0 0 24 24">
+																				<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path>
+																			</svg>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+													</div>
+													<div class="installer_navigation mt-6 flex items-center justify-between gap-2">
+														<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">{{next}}</button>
+													</div>
+												</div>
+											</div>
+										</section>
+										<section class="box big step" style="display:none;">
 											<div class="flex flex-col py-2">
 												<img src="<?= base_url() . $INSTALL_PATH ?>images/fusion.svg">
 												<div class="mx-auto mt-4">
@@ -146,136 +227,100 @@
 											</div>
 										</section>
 
-																<section class="box big step" data-validation="requirements" style="display:none;">
-																	<h2 class="text-white">{{server_requirements}} <span class="text-primary-400">({{important}})</span></h2>
+										<section class="box big step" data-validation="requirements" style="display:none;">
+											<h2 class="text-white">{{server_requirements}} <span style="color:red;display:inline;padding:0px;">({{important}})</span></h2>
 
-																	<div class="py-2 space-y-10">
-																		<div class="text-muted-500">
-																			<h3 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{what_need}}</h3>
+											<span class="flex flex-col py-2">
 
-																			<div class="mt-4">
-																				<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{checklist}}</h4>
-																			<div class="border-muted-200 dark:border-muted-700 dark:bg-muted-800 relative w-full border bg-white transition-all duration-300 rounded-md shadow-muted-300/30 dark:shadow-muted-800/30 shadow-xl p-4 mt-2">
-																				<div class="overflow-x-auto">
-																					<table class="w-full text-sm">
-																						<thead>
-																							<tr class="border-b border-muted-200 dark:border-muted-700">
-																								<th class="py-2 pe-4 text-left font-sans text-xs font-semibold uppercase tracking-wide text-muted-500 dark:text-muted-400">{{requirement}}</th>
-																								<th class="py-2 text-left font-sans text-xs font-semibold uppercase tracking-wide text-muted-500 dark:text-muted-400">{{status}}</th>
-																							</tr>
-																						</thead>
-																						<tbody class="divide-y divide-muted-200 dark:divide-muted-700">
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">{{php_version}} (>= 8.3.0)</td>
-																								<td class="py-2"><span id="req_php_version_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">{{php_extensions}}</td>
-																								<td class="py-2">
-																									<span id="req_php_extensions_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span>
-																									<div id="req_php_extensions_details" class="text-xs text-muted-500 dark:text-muted-400"></div>
-																									<ul id="req_php_extensions_list" class="mt-2 text-xs text-muted-500 dark:text-muted-400"></ul>
-																								</td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">{{apache_modules}}</td>
-																								<td class="py-2">
-																									<span id="req_apache_modules_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span>
-																									<div id="req_apache_modules_details" class="text-xs text-muted-500 dark:text-muted-400"></div>
-																									<ul id="req_apache_modules_list" class="mt-2 text-xs text-muted-500 dark:text-muted-400"></ul>
-																								</td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">/application/config/ {{needs_writable}}</td>
-																								<td class="py-2"><span id="req_folder_config_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">/application/modules/ {{needs_writable}}</td>
-																								<td class="py-2"><span id="req_folder_modules_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">/writable/cache/ {{needs_writable}}</td>
-																								<td class="py-2"><span id="req_folder_cache_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">/writable/backups/ {{needs_writable}}</td>
-																								<td class="py-2"><span id="req_folder_backups_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">/writable/logs/ {{needs_writable}}</td>
-																								<td class="py-2"><span id="req_folder_logs_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																							<tr>
-																								<td class="py-2 pe-4 text-muted-700 dark:text-muted-200">/writable/uploads/ {{needs_writable}}</td>
-																								<td class="py-2"><span id="req_folder_uploads_status" class="text-muted-500 dark:text-muted-400">{{checking}}</span></td>
-																							</tr>
-																						</tbody>
-																					</table>
-																				</div>
-																			</div>
-																		</div>
-																	</div>
-																</div>
+											<div class="introduction text-muted-500">
+												<h3 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{what_need}}</h3>
 
-																		<div class="folder-permissions">
-																			<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{folder_permissions}}</h4>
-																			<div class="border-muted-200 dark:border-muted-700 dark:bg-muted-800 relative w-full border bg-white transition-all duration-300 rounded-md shadow-muted-300/30 dark:shadow-muted-800/30 shadow-xl p-4 mt-2 space-y-2 text-sm">
-																			<div id="config_folder" class="text-muted-500 dark:text-muted-400">{{checking}}</div>
-																			<div id="modules_folder" class="text-muted-500 dark:text-muted-400">{{checking}}</div>
-																			<div id="cache_folder" class="text-muted-500 dark:text-muted-400">{{checking}}</div>
-																			<div id="backups_folder" class="text-muted-500 dark:text-muted-400">{{checking}}</div>
-																			<div id="logs_folder" class="text-muted-500 dark:text-muted-400">{{checking}}</div>
-																			<div id="uploads_folder" class="text-muted-500 dark:text-muted-400">{{checking}}</div>
-																			</div>
-																		</div>
+												<div class="folder-permissions">
+													<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{folder_permissions}}</h4>
+													<div style="font-weight:bold;margin:10px 0;" id="config_folder">&bull; /application/config/ {{needs_writable}} ({{see}} <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)</div>
 
-																		<div class="php-extensions">
-																			<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{php_extensions}}</h4>
-																			<span class="check-result" style="display:none"></span>
-																			<div id="php-extensions-missing" style="display:none" class="mt-4 text-sm font-sans text-muted-600 dark:text-muted-300">
-																				<b>{{extensions_required}}:</b>
-																				<span class="extensions"></span>
-																			</div>
+													<div style="font-weight:bold;margin:10px 0;" id="modules_folder">&bull; /application/modules/ {{is_writable}}</div>
 
-																			<div class="how_to_box mt-4">
-																				<div class="title bg-primary-500 dark:bg-primary-500">{{enable_extensions}}</div>
-																				<div class="content">
-																					<img src="<?= base_url() . $INSTALL_PATH ?>images/php.jpg" class="border border-muted-200 dark:border-muted-700 rounded" />
-																				</div>
-																			</div>
-																		</div>
+													<div style="font-weight:bold;margin:10px 0;" id="cache_folder">&bull; /writable/cache/</div>
 
-																		<div class="apache-modules">
-																			<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{apache_modules}}</h4>
-																			<b>{{recommend_apache}}<br><br>{{apache_required}}:</b><br>
-																			<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_rewrite</span>,
-																			<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_headers</span>,
-																			<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_expires</span>,
-																			<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_deflate</span>,
-																			<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_filter</span>
+													<div style="font-weight:bold;margin:10px 0;" id="backups_folder">&bull; /writable/backups/</div>
 
-																			<span class="check-result" style="display:none"></span>
-																			<div id="apache-modules-missing" style="display:none" class="mt-4 text-sm font-sans text-muted-600 dark:text-muted-300">
-																				<b>{{modules_required}}:</b>
-																				<span class="modules"></span>
-																			</div>
+													<div style="font-weight:bold;margin:10px 0;" id="logs_folder">&bull; /writable/logs/</div>
 
-																			<div class="how_to_box mt-4">
-																				<div class="title bg-primary-500 dark:bg-primary-500">{{enable_modules}}</div>
-																				<div class="content">
-																					Go into your Apache directory and find the <code>httpd.conf</code> file. Mine was located in <code>C:\xampp\apache\conf\</code>. Open the file with a text editor and search <code>CTRL+F</code> for one of the modules you need to enable. To enable them, simply remove the <code>#</code> character in front of the line.<br />Save the file and restart your webserver to apply the changes.<br /><br />
-																					<img src="<?= base_url() . $INSTALL_PATH ?>images/apache.jpg" class="border border-muted-200 dark:border-muted-700 rounded" />
-																				</div>
-																			</div>
-																		</div>
-																	</div>
-																</div>
+													<div style="font-weight:bold;margin:10px 0;" id="uploads_folder">&bull; /writable/uploads/</div>
+												</div>
 
-																	<div class="installer_navigation mt-6 flex items-center justify-between gap-2">
-																		<button type="button" class="prev is-button rounded is-button-default flex-1">{{previous_step}}</button>
-																		<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 flex-1">{{next_step}}</button>
-																	</div>
-																</section>
+												<div class="php-version">
+													<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{php_version}}</h4>
+													{{minimum_required_php}}: <span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">8.3.0</span> <span class="check-result"></span>
+												</div>
+
+												<div class="php-extensions">
+													<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{php_extensions}}</h4>
+
+													<b>{{extensions_required_php}}:</b><br>
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_mysqli</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_curl</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_openssl</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_soap</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_gd</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_gmp</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_mbstring</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_intl</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_json</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_mcrypt</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_xml</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">php_zip</span>
+
+													<span class="check-result" style="display:none"></span>
+													<div id="php-extensions-missing" style="display:none;color:red;margin-top:15px">
+														<b>{{extensions_required}}:</b>
+														<span class="extensions"></span>
+													</div>
+
+													<div class="how_to_box">
+														<div class="title bg-primary-500 dark:bg-primary-500">{{enable_extensions}}</div>
+														<div class="content">
+															Go into your PHP directory and find the <code>php.ini</code> file. Mine was located in <code>C:\xampp\php\</code>. Open the file with a text editor and search (CTRL+F) for one of the modules you need to enable. To enable them, simply remove the <code>;</code> character in front of the line.<br />Save the file and restart your webserver to apply the changes.<br /><br />
+
+															<img src="<?= base_url() . $INSTALL_PATH ?>images/php.jpg" style="border:1px solid #ccc" />
+														</div>
+													</div>
+												</div>
+
+												<div class="apache-modules">
+													<h4 class="font-heading text-xl font-light leading-tight text-muted-800 dark:text-white">{{apache_modules}}</h4>
+
+													<b>{{recommend_apache}}<br><br>
+													{{apache_required}}:</b> <br>
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_rewrite</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_headers</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_expires</span>,
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_deflate</span>
+													<span class="bg-muted-200 dark:bg-muted-700 text-muted-500 dark:text-muted-200 h-7 w-auto items-center justify-center rounded-full text-xs p-1">mod_filter</span>
+
+													<span class="check-result" style="display:none"></span>
+													<div id="apache-modules-missing" style="display:none;color:#e18f00;margin-top:15px">
+														<b>{{modules_required}}:</b>
+														<span class="modules"></span>
+													</div>
+
+													<div class="how_to_box">
+														<div class="title bg-primary-500 dark:bg-primary-500">{{enable_modules}}</div>
+														<div class="content">
+															Go into your Apache directory and find the <code>httpd.conf</code> file. Mine was located in <code>C:\xampp\apache\conf\</code>. Open the file with a text editor and search <code>CTRL+F</code> for one of the modules you need to enable. To enable them, simply remove the <code>#</code> character in front of the line.<br />Save the file and restart your webserver to apply the changes.<br /><br />
+															<img src="<?= base_url() . $INSTALL_PATH ?>images/apache.jpg" style="border:1px solid #ccc" />
+														</div>
+													</div>
+												</div>
+											</div>
+										</span>
+
+											<div class="installer_navigation mt-6 flex items-center justify-between gap-2">
+												<button type="button" class="prev is-button rounded is-button-default w-full">{{previous_step}}</button>
+												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">{{next_step}}</button>
+											</div>
+										</section>
 
 										<section class="box big step" style="display:none;">
 											<form id="form-general-settings" class="mx-auto min-w-lg max-w-lg space-y-12 py-8">
@@ -422,8 +467,8 @@
 											</form>
 
 											<div class="installer_navigation mt-6 flex items-center justify-between gap-2">
-												<button type="button" class="prev is-button rounded is-button-default flex-1">{{previous_step}}</button>
-												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 flex-1">{{next_step}}</button>
+												<button type="button" class="prev is-button rounded is-button-default w-full">{{previous_step}}</button>
+												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">{{next_step}}</button>
 											</div>
 										</section>
 
@@ -597,8 +642,8 @@
 											</form>
 
 											<div class="installer_navigation mt-6 flex items-center justify-between gap-2">
-												<button type="button" class="prev is-button rounded is-button-default flex-1">{{previous_step}}</button>
-												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 flex-1">{{next_step}}</button>
+												<button type="button" class="prev is-button rounded is-button-default w-full">{{previous_step}}</button>
+												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">{{next_step}}</button>
 											</div>
 										</section>
 
@@ -763,11 +808,11 @@
 												</form>
 											</div>
 
-																			<div class="border-t border-muted-200 dark:border-muted-700 mb-2"></div>
+											<div style="border-top:1px solid #ccc;margin-bottom:5px;"></div>
 
 											<div class="installer_navigation mt-6 flex items-center justify-between gap-2">
-												<button type="button" class="prev is-button rounded is-button-default flex-1">{{previous_step}}</button>
-												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 flex-1">{{next_step}}</button>
+												<button type="button" class="prev is-button rounded is-button-default w-full">{{previous_step}}</button>
+												<button type="button" class="next is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">{{next_step}}</button>
 											</div>
 										</section>
 
@@ -775,12 +820,12 @@
 											<h2 class="text-white"> {{installing}}</h2>
 											<span class="text-white" id="install"></span>
 											<div id="install_after_actions" class="mt-6 flex items-center justify-between gap-2 text-nowrap" style="display:none">
-												<a href="<?= base_url('install/upgrade') ?>" class="m-0 is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 flex-1">Upgrade</a>
+												<a href="<?= base_url('install/upgrade') ?>" class="m-0 is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">Upgrade</a>
 												<span class="text-muted-500 dark:text-muted-400">OR</span>
-												<a href="<?= base_url() ?>" class="m-0 is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 flex-1">Go to website</a>
+												<a href="<?= base_url() ?>" class="m-0 is-button rounded bg-primary-500 dark:bg-primary-500 hover:enabled:bg-primary-400 dark:hover:enabled:bg-primary-400 text-white hover:enabled:shadow-lg hover:enabled:shadow-primary-500/50 dark:hover:enabled:shadow-primary-800/20 focus-visible:outline-primary-400/70 focus-within:outline-primary-400/70 focus-visible:bg-primary-500 active:enabled:bg-primary-500 dark:focus-visible:outline-primary-400 dark:focus-within:outline-primary-400 dark:focus-visible:bg-primary-500 dark:active:enabled:bg-primary-500 w-full">Go to website</a>
 											</div>
 										</section>
-										</div>
+									</aside>
 								</div>
 							</div>
 						</div>
@@ -797,6 +842,19 @@
 				</div>
 			</div>
 		</div>
-		<script></script>
+        <script>
+            Language.init();
+
+			const userLang = localStorage.getItem('language') == null ? 'en' : localStorage.getItem('language');
+			document.getElementById('language_selection_' + userLang).checked = true;
+
+            if (userLang == 'fa')
+                document.getElementsByTagName('body')[0].style.direction = "rtl";
+
+            function setLanguage(lang) {
+                localStorage.setItem('language', lang);
+				location.reload();
+            }
+        </script>
     </body>
 </html>

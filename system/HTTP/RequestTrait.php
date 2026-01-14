@@ -51,7 +51,7 @@ trait RequestTrait
      */
     public function getIPAddress(): string
     {
-        if ($this->ipAddress) {
+        if ($this->ipAddress !== '') {
             return $this->ipAddress;
         }
 
@@ -243,7 +243,7 @@ trait RequestTrait
      *
      * @param         string                                   $name   Supergrlobal name (lowercase)
      * @phpstan-param 'get'|'post'|'request'|'cookie'|'server' $name
-     * @param         array|string|null                        $index
+     * @param         array|int|string|null                    $index
      * @param         int|null                                 $filter Filter constant
      * @param         array|int|null                           $flags  Options
      *
@@ -284,7 +284,7 @@ trait RequestTrait
         }
 
         // Does the index contain array notation?
-        if (($count = preg_match_all('/(?:^[^\[]+)|\[[^]]*\]/', $index, $matches)) > 1) {
+        if (is_string($index) && ($count = preg_match_all('/(?:^[^\[]+)|\[[^]]*\]/', $index, $matches)) > 1) {
             $value = $this->globals[$name];
 
             for ($i = 0; $i < $count; $i++) {
@@ -316,7 +316,7 @@ trait RequestTrait
             )
         ) {
             // Iterate over array and append filter and flags
-            array_walk_recursive($value, static function (&$val) use ($filter, $flags) {
+            array_walk_recursive($value, static function (&$val) use ($filter, $flags): void {
                 $val = filter_var($val, $filter, $flags);
             });
 

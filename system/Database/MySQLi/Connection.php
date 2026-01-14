@@ -15,6 +15,7 @@ namespace CodeIgniter\Database\MySQLi;
 
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\Exceptions\DatabaseException;
+use CodeIgniter\Database\TableName;
 use LogicException;
 use mysqli;
 use mysqli_result;
@@ -57,7 +58,7 @@ class Connection extends BaseConnection
     /**
      * MySQLi object
      *
-     * Has to be preserved without being assigned to $conn_id.
+     * Has to be preserved without being assigned to $connId.
      *
      * @var false|mysqli
      */
@@ -82,6 +83,16 @@ class Connection extends BaseConnection
     public $numberNative = false;
 
     /**
+     * Use MYSQLI_CLIENT_FOUND_ROWS
+     *
+     * Whether affectedRows() should return number of rows found,
+     * or number of rows changed, after an UPDATE query.
+     *
+     * @var bool
+     */
+    public $foundRows = false;
+
+    /**
      * Connect to the database.
      *
      * @return false|mysqli
@@ -96,7 +107,7 @@ class Connection extends BaseConnection
             $port     = null;
             $socket   = $this->hostname;
         } else {
-            $hostname = ($persistent === true) ? 'p:' . $this->hostname : $this->hostname;
+            $hostname = $persistent ? 'p:' . $this->hostname : $this->hostname;
             $port     = empty($this->port) ? null : $this->port;
             $socket   = '';
         }
@@ -112,7 +123,7 @@ class Connection extends BaseConnection
             $this->mysqli->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
         }
 
-        if (isset($this->strictOn)) {
+        if ($this->strictOn !== null) {
             if ($this->strictOn) {
                 $this->mysqli->options(
                     MYSQLI_INIT_COMMAND,
@@ -182,6 +193,10 @@ class Connection extends BaseConnection
             $clientFlags += MYSQLI_CLIENT_SSL;
         }
 
+        if ($this->foundRows) {
+            $clientFlags += MYSQLI_CLIENT_FOUND_ROWS;
+        }
+
         try {
             if ($this->mysqli->real_connect(
                 $hostname,
@@ -193,7 +208,7 @@ class Connection extends BaseConnection
                 $clientFlags
             )) {
                 // Prior to version 5.7.3, MySQL silently downgrades to an unencrypted connection if SSL setup fails
-                if (($clientFlags & MYSQLI_CLIENT_SSL) && version_compare($this->mysqli->client_info, 'mysqlnd 5.7.3', '<=')
+                if (($clientFlags & MYSQLI_CLIENT_SSL) !== 0 && version_compare($this->mysqli->client_info, 'mysqlnd 5.7.3', '<=')
                     && empty($this->mysqli->query("SHOW STATUS LIKE 'ssl_cipher'")->fetch_object()->Value)
                 ) {
                     $this->mysqli->close();
@@ -237,6 +252,8 @@ class Connection extends BaseConnection
     /**
      * Keep or establish the connection if no queries have been sent for
      * a length of time exceeding the server's idle timeout.
+     *
+     * @return void
      */
     public function reconnect()
     {
@@ -246,6 +263,8 @@ class Connection extends BaseConnection
 
     /**
      * Close the database connection.
+     *
+     * @return void
      */
     protected function _close()
     {
@@ -293,7 +312,7 @@ class Connection extends BaseConnection
     /**
      * Executes the query against the database.
      *
-     * @return false|mysqli_result;
+     * @return false|mysqli_result
      */
     protected function execute(string $sql)
     {
@@ -391,11 +410,11 @@ class Connection extends BaseConnection
     {
         $sql = 'SHOW TABLES FROM ' . $this->escapeIdentifiers($this->database);
 
-        if ($tableName !== null) {
+        if ((string) $tableName !== '') {
             return $sql . ' LIKE ' . $this->escape($tableName);
         }
 
-        if ($prefixLimit !== false && $this->DBPrefix !== '') {
+        if ($prefixLimit && $this->DBPrefix !== '') {
             return $sql . " LIKE '" . $this->escapeLikeStringDirect($this->DBPrefix) . "%'";
         }
 
@@ -404,10 +423,19 @@ class Connection extends BaseConnection
 
     /**
      * Generates a platform-specific query string so that the column names can be fetched.
+     *
+     * @param string|TableName $table
      */
-    protected function _listColumns(string $table = ''): string
+    protected function _listColumns($table = ''): string
     {
-        return 'SHOW COLUMNS FROM ' . $this->protectIdentifiers($table, true, null, false);
+        $tableName = $this->protectIdentifiers(
+            $table,
+            true,
+            null,
+            false,
+        );
+
+        return 'SHOW COLUMNS FROM ' . $tableName;
     }
 
     /**
@@ -458,7 +486,9 @@ class Connection extends BaseConnection
             throw new DatabaseException(lang('Database.failGetIndexData'));
         }
 
-        if (! $indexes = $query->getResultArray()) {
+        $indexes = $query->getResultArray();
+
+        if ($indexes === []) {
             return [];
         }
 

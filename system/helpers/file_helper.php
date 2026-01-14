@@ -89,7 +89,9 @@ if (!function_exists('write_file')) {
 
         flock($fp, LOCK_EX);
 
-        for ($result = $written = 0, $length = strlen($data); $written < $length; $written += $result) {
+        $result = 0;
+
+        for ($written = 0, $length = strlen($data); $written < $length; $written += $result) {
             if (($result = fwrite($fp, substr($data, $written))) === false) {
                 break;
             }
@@ -134,7 +136,7 @@ if (!function_exists('delete_files')) {
 
                 if (is_dir($filepath) && $filename[0] !== '.' && !is_link($filepath)) {
                     delete_files($filepath, $del_dir, $htdocs, $_level + 1);
-                } elseif ($htdocs !== true or !preg_match('/^(\.htaccess|index\.(html|htm|php)|web\.config)$/i', $filename)) {
+                } if (! $htdocs || preg_match('/^(\.htaccess|index\.(html|htm|php)|web\.config)$/i', $filename) !== 1) {
                     @unlink($filepath);
                 }
             }

@@ -93,7 +93,7 @@ const UI = {
                                     if (result == '1') {
                                         notifyResult(true);
                                     } else {
-                                        notifyResult(false, 'FusionCMS requires at least PHP 8.3');
+                                        notifyResult(false, 'FusionCMS requires at least PHP 8.0');
                                     }
                                 });
                             } else {
@@ -309,8 +309,7 @@ const UI = {
         current: 1,
 
         next: function (onComplete) {
-            const stepCount = $('.step').length;
-            if (this.current < stepCount)
+            if (this.current < ($('.step').length + 1))
                 UI.Navigation.goTo(UI.Navigation.current + 1);
         },
 
@@ -344,10 +343,7 @@ const UI = {
                 return;
             }
 
-            const stepCount = $('.step').length;
-            const denom = Math.max(1, stepCount - 1);
-            const progress = ((id - 1) * 100) / denom;
-            $('#progressbar .nui-progress-bar').width(progress + '%');
+            $('#progressbar .nui-progress-bar').width((id - 1) * (100 / $('.step').length) + '%');
 
             const showRequestedStep = function () {
                 // Save the current step's fields
@@ -357,31 +353,18 @@ const UI = {
                 $('.menus li:nth-child(' + UI.Navigation.current + ') a').addClass('unlocked');
                 $(".menus li .router-link-active").removeClass('router-link-active');
 
-                // Robust step switching: always hide all steps first.
-                // This prevents multiple steps (and multiple Next buttons) from remaining visible
-                // if an animation gets interrupted or a previous fadeOut doesn't complete.
-                const $steps = $('.step');
-                $steps.stop(true, true).hide();
+                // fade current step out, requested step in
+                $(".step:eq(" + (UI.Navigation.current - 1) + ")").fadeOut(200, function () {
+                    UI.Navigation.current = id;
 
-                UI.Navigation.current = id;
-                $('.menus li:nth-child(' + UI.Navigation.current + ') a').addClass('router-link-active');
-
-                $steps.eq(UI.Navigation.current - 1).fadeIn(200, function () {
-                        $(document).scrollTop(0);
-
-						// When arriving at the Requirements step, run the checks immediately so
-						// the checklist doesn't stay stuck on "Checking...".
-						const currentValidation = $steps.eq(UI.Navigation.current - 1).attr('data-validation');
-						if (currentValidation === 'requirements' && typeof Ajax !== 'undefined') {
-							if (Ajax.checkPermissions) Ajax.checkPermissions();
-							if (Ajax.checkApacheModules) Ajax.checkApacheModules();
-							if (Ajax.checkPhpExtensions) Ajax.checkPhpExtensions();
-							if (Ajax.checkPhpVersion) Ajax.checkPhpVersion();
-						}
+                    $('.menus li:nth-child(' + UI.Navigation.current + ') a').addClass('router-link-active');
+                    $('.step:eq(' + (UI.Navigation.current - 1) + ')').fadeIn(200, function () {
+                        $('document').scrollTop();
 
                         if (onComplete !== undefined)
                             onComplete();
                     });
+                });
             };
 
             // validate current step (only if moving forward)

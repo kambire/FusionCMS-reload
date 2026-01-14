@@ -5,18 +5,12 @@ var Auth = {
 	useRecaptcha3: false,
 
 	login: function(submit = false) {
-		var csrfToken = (typeof getCookie === "function")
-			? getCookie('csrf_cookie_name')
-			: (typeof Config !== "undefined" ? Config.CSRF : "");
-
 		var postData = {
 			"username": $(".username-input").val(),
 			"password": $(".password-input").val(),
 			"remember": $(".remember-check").is(":checked"),
 			"captcha": $(".captcha-input").val(),
 			"submit": submit,
-			"csrf_token_name": csrfToken,
-			"token": csrfToken,
 		};
 
 		var fields = [
@@ -67,15 +61,6 @@ var Auth = {
 					console.error(e);
 					console.log(data);
 				}				
-			}).fail(function(xhr) {
-				var message = "Login request failed";
-				if (xhr && xhr.status) {
-					message += " (HTTP " + xhr.status + ")";
-				}
-				$(".error-feedback")
-					.addClass("invalid-feedback d-block")
-					.removeClass("d-none")
-					.html(message);
 			});
 
 		}, 500);

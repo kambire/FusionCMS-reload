@@ -149,26 +149,6 @@ class Install extends MX_Controller
                 die('Please fill all fields.');
         }
 
-        // Normalize common Docker pitfalls:
-        // - In PHP/MySQLi, hostname 'localhost' uses a unix socket which won't exist in this container.
-        // - Missing/blank port becomes 0 which can also lead to socket-style behavior.
-        $inDocker = is_file('/.dockerenv') || getenv('DOCKER') === '1';
-
-        $cmsHostname = trim((string) $_POST['cms_hostname']);
-        $authHostname = trim((string) $_POST['auth_hostname']);
-
-        if ($inDocker) {
-            if ($cmsHostname === 'localhost') {
-                $cmsHostname = 'db';
-            }
-            if ($authHostname === 'localhost') {
-                $authHostname = 'db';
-            }
-        }
-
-        $cmsPort = (isset($_POST['cms_port']) && (int) $_POST['cms_port'] > 0) ? (int) $_POST['cms_port'] : 3306;
-        $authPort = (isset($_POST['auth_port']) && (int) $_POST['auth_port'] > 0) ? (int) $_POST['auth_port'] : 3306;
-
         $db = fopen("application/config/Database.php", "w");
 
         $raw = '<?php
@@ -183,7 +163,7 @@ class Database extends Config
 
     public array $cms = [
         "DSN" => "",
-        "hostname" => "'.$cmsHostname.'",
+        "hostname" => "'.$_POST['cms_hostname'].'",
         "username" => "'.$_POST['cms_username'].'",
         "password" => "'.$_POST['cms_password'].'",
         "database" => "'.$_POST['cms_database'].'",
@@ -198,12 +178,19 @@ class Database extends Config
         "compress" => false,
         "strictOn" => false,
         "failover" => [],
-        "port" => '.$cmsPort.',
+        "port" => '.(int)$_POST['cms_port'].',
+        "numberNative" => false,
+        "foundRows"    => false,
+        "dateFormat"   => [
+            "date"     => "Y-m-d",
+            "datetime" => "Y-m-d H:i:s",
+            "time"     => "H:i:s,
+        ],
     ];
 
     public array $account = [
         "DSN" => "",
-        "hostname" => "'.$authHostname.'",
+        "hostname" => "'.$_POST['auth_hostname'].'",
         "username" => "'.$_POST['auth_username'].'",
         "password" => "'.$_POST['auth_password'].'",
         "database" => "'.$_POST['auth_database'].'",
@@ -218,7 +205,14 @@ class Database extends Config
         "compress" => false,
         "strictOn" => false,
         "failover" => [],
-        "port" => '.$authPort.',
+        "port" => '.(int)$_POST['auth_port'].',
+        "numberNative" => false,
+        "foundRows"    => false,
+        "dateFormat"   => [
+            "date"     => "Y-m-d",
+            "datetime" => "Y-m-d H:i:s",
+            "time"     => "H:i:s,
+        ],
     ];
 }
 ';
@@ -281,29 +275,9 @@ class Database extends Config
     private function config()
     {
         // owner.php
-        // Only create this if the owner account exists in the Auth DB.
-        // Otherwise FusionCMS will crash on boot while trying to auto-assign ACL groups.
-        $ownerUsername = isset($_POST['superadmin']) ? trim((string) $_POST['superadmin']) : '';
-
-        if ($ownerUsername !== '') {
-            $shouldWriteOwner = false;
-
-            try {
-                $authDb = db_connect('account');
-                $row = $authDb
-                    ->query('SELECT `id` FROM `account` WHERE `username` = ? LIMIT 1', [$ownerUsername])
-                    ->getRowArray();
-                $shouldWriteOwner = ! empty($row);
-            } catch (Exception | DatabaseException $e) {
-                $shouldWriteOwner = false;
-            }
-
-            if ($shouldWriteOwner) {
-                $owner = fopen("application/config/owner.php", "w");
-                fwrite($owner, '<?php $config["owner"] = "'.addslashes($ownerUsername).'";');
-                fclose($owner);
-            }
-        }
+        $owner = fopen("application/config/owner.php", "w");
+        fwrite($owner, '<?php $config["owner"] = "'.addslashes($_POST['superadmin']).'";');
+        fclose($owner);
 
         require_once('application/libraries/ConfigEditor.php');
 
@@ -381,14 +355,6 @@ class Database extends Config
     private function database()
     {
         $this->connect();
-
-        // Some local MySQL 8.x installs run with strict sql_mode enabled by default
-        // which can cause legacy schema imports to fail. Relax for the installer session.
-        try {
-            $this->db->query("SET SESSION sql_mode = ''");
-        } catch (Exception | DatabaseException $e) {
-            // Ignore and continue; the import will fail with a useful error if mode can't be changed.
-        }
 
         $this->SplitSQL(FCPATH. 'application/modules/install/SQL/fusion_final_full.sql');
 
@@ -498,6 +464,13 @@ class Database extends Config
                 'compress' => false,
                 'strictOn' => false,
                 'failover' => [],
+                'numberNative' => false,
+                'foundRows'    => false,
+                'dateFormat'   => [
+                    'date'     => 'Y-m-d',
+                    'datetime' => 'Y-m-d H:i:s',
+                    'time'     => 'H:i:s',
+                ],
             ];
 
             $worldConfig = [
@@ -518,6 +491,13 @@ class Database extends Config
                 'compress' => false,
                 'strictOn' => false,
                 'failover' => [],
+                'numberNative' => false,
+                'foundRows'    => false,
+                'dateFormat'   => [
+                    'date'     => 'Y-m-d',
+                    'datetime' => 'Y-m-d H:i:s',
+                    'time'     => 'H:i:s',
+                ],
             ];
 
             // Connect to characters

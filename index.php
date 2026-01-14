@@ -16,12 +16,12 @@ if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
  *---------------------------------------------------------------
  */
 
-$minPhpVersion = '8.3'; // Keep in sync with composer.json (and `spark` if present).
+$minPhpVersion = '8.1'; // If you update this, don't forget to update `spark`.
 if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
     $message = sprintf(
         'Your PHP version must be %s or higher to run FusionCMS. Current version: %s',
         $minPhpVersion,
-        PHP_VERSION
+        PHP_VERSION,
     );
 
     header('HTTP/1.1 503 Service Unavailable.', true, 503);

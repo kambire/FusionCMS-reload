@@ -1,55 +1,4 @@
 const Ajax = {
-    Requirements: {
-        setStatus: function (id, state, text) {
-            const el = document.getElementById(id);
-            if (!el)
-                return;
-
-            el.textContent = text;
-
-            if (state === 'ok') {
-                el.style.color = 'green';
-            } else if (state === 'error') {
-                el.style.color = 'red';
-            } else if (state === 'warn') {
-                el.style.color = '#e18f00';
-            } else {
-                el.style.color = '';
-            }
-        },
-
-        setDetails: function (id, text) {
-            const el = document.getElementById(id);
-            if (!el)
-                return;
-
-            el.textContent = text || '';
-        },
-
-        setList: function (id, items) {
-            const el = document.getElementById(id);
-            if (!el)
-                return;
-
-            el.innerHTML = '';
-
-            (items || []).forEach(function (item) {
-                const li = document.createElement('li');
-                li.textContent = item.text;
-
-                if (item.state === 'ok') {
-                    li.style.color = 'green';
-                } else if (item.state === 'error') {
-                    li.style.color = 'red';
-                } else if (item.state === 'warn') {
-                    li.style.color = '#e18f00';
-                }
-
-                el.appendChild(li);
-            });
-        }
-    },
-
     initialize: function () {
         $.get("install/next?step=getEmulators", function (data) {
             data = JSON.parse(data);
@@ -127,8 +76,6 @@ const Ajax = {
             else
                 $('.php-version .check-result').addClass('error').css('color', 'red').html('Not installed.');
 
-            Ajax.Requirements.setStatus('req_php_version_status', data == '1' ? 'ok' : 'error', data == '1' ? 'OK' : 'Fail');
-
             if (onComplete !== undefined)
                 onComplete(data == '1');
         });
@@ -163,10 +110,8 @@ const Ajax = {
         $.get("install/next?step=folder&test=config&path=application", function (data) {
             if (data == '1') {
                 $("#config_folder").css({color: "green"}).removeClass('error').html("/application/config/ is writable");
-                Ajax.Requirements.setStatus('req_folder_config_status', 'ok', 'OK');
             } else {
                 $("#config_folder").css({color: "red"}).addClass('error').html('/application/config/ needs to be writable (see <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)');
-                Ajax.Requirements.setStatus('req_folder_config_status', 'error', 'Fail');
             }
 
             done++;
@@ -175,10 +120,8 @@ const Ajax = {
         $.get("install/next?step=folder&test=modules&path=application", function (data) {
             if (data == '1') {
                 $("#modules_folder").css({color: "green"}).removeClass('error').html("/application/modules/ is writable");
-                Ajax.Requirements.setStatus('req_folder_modules_status', 'ok', 'OK');
             } else {
                 $("#modules_folder").css({color: "red"}).addClass('error').html('/application/modules/ needs to be writable (see <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)');
-                Ajax.Requirements.setStatus('req_folder_modules_status', 'error', 'Fail');
             }
 
             done++;
@@ -187,10 +130,8 @@ const Ajax = {
         $.get("install/next?step=folder&test=cache&path=writable", function (data) {
             if (data == '1') {
                 $("#cache_folder").css({color: "green"}).removeClass('error').html("/writable/cache/ is writable");
-                Ajax.Requirements.setStatus('req_folder_cache_status', 'ok', 'OK');
             } else {
                 $("#cache_folder").css({color: "red"}).addClass('error').html('/writable/cache/ needs to be writable (see <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)');
-                Ajax.Requirements.setStatus('req_folder_cache_status', 'error', 'Fail');
             }
 
             done++;
@@ -199,10 +140,8 @@ const Ajax = {
         $.get("install/next?step=folder&test=backups&path=writable", function (data) {
             if (data == '1') {
                 $("#backups_folder").css({color: "green"}).removeClass('error').html("/writable/backups/ is writable");
-                Ajax.Requirements.setStatus('req_folder_backups_status', 'ok', 'OK');
             } else {
                 $("#backups_folder").css({color: "red"}).addClass('error').html('/writable/backups/ needs to be writable (see <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)');
-                Ajax.Requirements.setStatus('req_folder_backups_status', 'error', 'Fail');
             }
 
             done++;
@@ -211,10 +150,8 @@ const Ajax = {
         $.get("install/next?step=folder&test=logs&path=writable", function (data) {
             if (data == '1') {
                 $("#logs_folder").css({color: "green"}).removeClass('error').html("/writable/logs/ is writable");
-                Ajax.Requirements.setStatus('req_folder_logs_status', 'ok', 'OK');
             } else {
                 $("#logs_folder").css({color: "red"}).addClass('error').html('/writable/logs/ needs to be writable (see <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)');
-                Ajax.Requirements.setStatus('req_folder_logs_status', 'error', 'Fail');
             }
 
             done++;
@@ -223,10 +160,8 @@ const Ajax = {
         $.get("install/next?step=folder&test=uploads&path=writable", function (data) {
             if (data == '1') {
                 $("#uploads_folder").css({color: "green"}).removeClass('error').html("/writable/uploads/ is writable");
-                Ajax.Requirements.setStatus('req_folder_uploads_status', 'ok', 'OK');
             } else {
                 $("#uploads_folder").css({color: "red"}).addClass('error').html('/writable/uploads/ needs to be writable (see <a href="http://en.wikipedia.org/wiki/Chmod" target="_blank">chmod</a>)');
-                Ajax.Requirements.setStatus('req_folder_uploads_status', 'error', 'Fail');
             }
 
             done++;
@@ -235,34 +170,13 @@ const Ajax = {
 
     checkPhpExtensions: function (onComplete) {
         $.get("install/next?step=checkPhpExtensions", function (data) {
-            const required = ['mysqli', 'curl', 'openssl', 'soap', 'gd', 'gmp', 'mbstring', 'intl', 'json', 'xml', 'zip'];
-            const missing = (data && data !== '1')
-                ? data.split(',').map(function (s) { return (s || '').trim(); }).filter(Boolean)
-                : [];
-
-            Ajax.Requirements.setList(
-                'req_php_extensions_list',
-                required.map(function (ext) {
-                    const isMissing = missing.indexOf(ext) !== -1;
-                    return {
-                        text: (isMissing ? '✗ ' : '✓ ') + 'php_' + ext,
-                        state: isMissing ? 'error' : 'ok'
-                    };
-                })
-            );
 
             if (data != '1') {
                 $("#php-extensions-missing .extensions").text(data).parent().show();
                 $('.php-extensions .check-result').hide();
-
-                Ajax.Requirements.setStatus('req_php_extensions_status', 'error', 'Fail');
-                Ajax.Requirements.setDetails('req_php_extensions_details', data);
             } else {
                 $('#php-extensions-missing').hide();
                 $('.php-extensions .check-result').css('color', 'green').html('OK!').show();
-
-                Ajax.Requirements.setStatus('req_php_extensions_status', 'ok', 'OK');
-                Ajax.Requirements.setDetails('req_php_extensions_details', '');
             }
 
             if (onComplete !== undefined)
@@ -272,49 +186,16 @@ const Ajax = {
 
     checkApacheModules: function (onComplete) {
         $.get("install/next?step=checkApacheModules", function (data) {
-            const required = ['mod_rewrite', 'mod_headers', 'mod_expires', 'mod_deflate', 'mod_filter'];
-            const missing = (data && data !== '1' && data !== '2')
-                ? data.split(',').map(function (s) { return (s || '').trim(); }).filter(Boolean)
-                : [];
-
-            if (data == '2') {
-                Ajax.Requirements.setList(
-                    'req_apache_modules_list',
-                    required.map(function (mod) {
-                        return { text: '? ' + mod, state: 'warn' };
-                    })
-                );
-            } else {
-                Ajax.Requirements.setList(
-                    'req_apache_modules_list',
-                    required.map(function (mod) {
-                        const isMissing = missing.indexOf(mod) !== -1;
-                        return {
-                            text: (isMissing ? '✗ ' : '✓ ') + mod,
-                            state: isMissing ? 'error' : 'ok'
-                        };
-                    })
-                );
-            }
 
             if (data == '1') {
                 $('#apache-modules-missing').hide();
                 $('.apache-modules .check-result').css('color', 'green').html('OK!').show();
-
-                Ajax.Requirements.setStatus('req_apache_modules_status', 'ok', 'OK');
-                Ajax.Requirements.setDetails('req_apache_modules_details', '');
             } else if (data == '2') {
                 $("#apache-modules-missing .modules").text('Unable to check Apache Modules, make sure required modules are enabled.').parent().show();
                 $('.apache-modules .check-result').hide();
-
-                Ajax.Requirements.setStatus('req_apache_modules_status', 'warn', 'Unknown');
-                Ajax.Requirements.setDetails('req_apache_modules_details', 'Unable to check');
             } else {
                 $("#apache-modules-missing .modules").text(data).parent().show();
                 $('.apache-modules .check-result').hide();
-
-                Ajax.Requirements.setStatus('req_apache_modules_status', 'error', 'Fail');
-                Ajax.Requirements.setDetails('req_apache_modules_details', data);
             }
 
             if (onComplete !== undefined)

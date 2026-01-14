@@ -15,6 +15,7 @@ namespace CodeIgniter\Database\SQLite3;
 
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\Exceptions\DatabaseException;
+use CodeIgniter\Database\TableName;
 use Exception;
 use SQLite3;
 use SQLite3Result;
@@ -55,6 +56,18 @@ class Connection extends BaseConnection
      */
     protected $busyTimeout;
 
+    /**
+     * The setting of the "synchronous" flag
+     *
+     * @var int<0, 3>|null flag
+     *
+     * @see https://www.sqlite.org/pragma.html#pragma_synchronous
+     */
+    protected ?int $synchronous = null;
+
+    /**
+     * @return void
+     */
     public function initialize()
     {
         parent::initialize();
@@ -65,6 +78,13 @@ class Connection extends BaseConnection
 
         if (is_int($this->busyTimeout)) {
             $this->connID->busyTimeout($this->busyTimeout);
+        }
+
+        if (is_int($this->synchronous)) {
+            if (! in_array($this->synchronous, [0, 1, 2, 3], true)) {
+                throw new InvalidArgumentException('Invalid synchronous value.');
+            }
+            $this->connID->exec('PRAGMA synchronous = ' . $this->synchronous);
         }
     }
 
@@ -86,7 +106,7 @@ class Connection extends BaseConnection
                 $this->database = WRITEPATH . $this->database;
             }
 
-            $sqlite = (! $this->password)
+            $sqlite = ($this->password === null || $this->password === '')
                 ? new SQLite3($this->database)
                 : new SQLite3($this->database, SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE, $this->password);
 
@@ -101,6 +121,8 @@ class Connection extends BaseConnection
     /**
      * Keep or establish the connection if no queries have been sent for
      * a length of time exceeding the server's idle timeout.
+     *
+     * @return void
      */
     public function reconnect()
     {
@@ -110,6 +132,8 @@ class Connection extends BaseConnection
 
     /**
      * Close the database connection.
+     *
+     * @return void
      */
     protected function _close()
     {
@@ -187,7 +211,7 @@ class Connection extends BaseConnection
      */
     protected function _listTables(bool $prefixLimit = false, ?string $tableName = null): string
     {
-        if ($tableName !== null) {
+        if ((string) $tableName !== '') {
             return 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\''
                    . ' AND "NAME" NOT LIKE \'sqlite!_%\' ESCAPE \'!\''
                    . ' AND "NAME" LIKE ' . $this->escape($tableName);
@@ -195,26 +219,38 @@ class Connection extends BaseConnection
 
         return 'SELECT "NAME" FROM "SQLITE_MASTER" WHERE "TYPE" = \'table\''
                . ' AND "NAME" NOT LIKE \'sqlite!_%\' ESCAPE \'!\''
-               . (($prefixLimit !== false && $this->DBPrefix !== '')
+               . (($prefixLimit && $this->DBPrefix !== '')
                     ? ' AND "NAME" LIKE \'' . $this->escapeLikeString($this->DBPrefix) . '%\' ' . sprintf($this->likeEscapeStr, $this->likeEscapeChar)
                     : '');
     }
 
     /**
      * Generates a platform-specific query string so that the column names can be fetched.
+     *
+     * @param string|TableName $table
      */
-    protected function _listColumns(string $table = ''): string
+    protected function _listColumns($table = ''): string
     {
-        return 'PRAGMA TABLE_INFO(' . $this->protectIdentifiers($table, true, null, false) . ')';
+        if ($table instanceof TableName) {
+            $tableName = $this->escapeIdentifier($table);
+        } else {
+            $tableName = $this->protectIdentifiers($table, true, null, false);
+        }
+
+        return 'PRAGMA TABLE_INFO(' . $tableName . ')';
     }
 
     /**
-     * @return array|false
+     * @param string|TableName $tableName
+     *
+     * @return false|list<string>
      *
      * @throws DatabaseException
      */
-    public function getFieldNames(string $table)
+    public function getFieldNames($tableName)
     {
+        $table = ($tableName instanceof TableName) ? $tableName->getTableName() : $tableName;
+
         // Is there a cached result?
         if (isset($this->dataCache['field_names'][$table])) {
             return $this->dataCache['field_names'][$table];
@@ -224,7 +260,7 @@ class Connection extends BaseConnection
             $this->initialize();
         }
 
-        $sql = $this->_listColumns($table);
+        $sql = $this->_listColumns($tableName);
 
         $query                                  = $this->query($sql);
         $this->dataCache['field_names'][$table] = [];
@@ -352,7 +388,7 @@ class Connection extends BaseConnection
      */
     protected function _foreignKeyData(string $table): array
     {
-        if ($this->supportsForeignKeys() !== true) {
+        if (! $this->supportsForeignKeys()) {
             return [];
         }
 

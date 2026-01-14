@@ -122,7 +122,7 @@ class Builder extends BaseBuilder
             $cond = ' ON ' . $cond;
         } else {
             // Split multiple conditions
-            if (preg_match_all('/\sAND\s|\sOR\s/i', $cond, $joints, PREG_OFFSET_CAPTURE)) {
+            if (preg_match_all('/\sAND\s|\sOR\s/i', $cond, $joints, PREG_OFFSET_CAPTURE) >= 1) {
                 $conditions = [];
                 $joints     = $joints[0];
                 array_unshift($joints, ['', 0]);
@@ -144,6 +144,13 @@ class Builder extends BaseBuilder
 
             foreach ($conditions as $i => $condition) {
                 $operator = $this->getOperator($condition);
+
+                // Workaround for BETWEEN
+                if ($operator === false) {
+                    $cond .= $joints[$i] . $condition;
+
+                    continue;
+                }
 
                 $cond .= $joints[$i];
                 $cond .= preg_match('/(\(*)?([\[\]\w\.\'-]+)' . preg_quote($operator, '/') . '(.*)/i', $condition, $match) ? $match[1] . $this->db->protectIdentifiers($match[2]) . $operator . $this->db->protectIdentifiers($match[3]) : $condition;
@@ -290,6 +297,23 @@ class Builder extends BaseBuilder
         }
 
         if ($this->db->escapeChar === '"') {
+            if (str_contains($table, '.') && ! str_starts_with($table, '.') && ! str_ends_with($table, '.')) {
+                $dbInfo   = explode('.', $table);
+                $database = $this->db->getDatabase();
+                $table    = $dbInfo[0];
+
+                if (count($dbInfo) === 3) {
+                    $database  = str_replace('"', '', $dbInfo[0]);
+                    $schema    = str_replace('"', '', $dbInfo[1]);
+                    $tableName = str_replace('"', '', $dbInfo[2]);
+                } else {
+                    $schema    = str_replace('"', '', $dbInfo[0]);
+                    $tableName = str_replace('"', '', $dbInfo[1]);
+                }
+
+                return '"' . $database . '"."' . $schema . '"."' . str_replace('"', '', $tableName) . '"' . $alias;
+            }
+
             return '"' . $this->db->getDatabase() . '"."' . $this->db->schema . '"."' . str_replace('"', '', $table) . '"' . $alias;
         }
 
@@ -395,7 +419,7 @@ class Builder extends BaseBuilder
 
         // Get the binds
         $binds = $this->binds;
-        array_walk($binds, static function (&$item) {
+        array_walk($binds, static function (&$item): void {
             $item = $item[0];
         });
 
@@ -493,7 +517,7 @@ class Builder extends BaseBuilder
 
         $query = $query->getRow();
 
-        if ($reset === true) {
+        if ($reset) {
             $this->resetSelect();
         }
 
@@ -559,7 +583,7 @@ class Builder extends BaseBuilder
         if ($selectOverride !== false) {
             $sql = $selectOverride;
         } else {
-            $sql = (! $this->QBDistinct) ? 'SELECT ' : 'SELECT DISTINCT ';
+            $sql = $this->QBDistinct ? 'SELECT DISTINCT ' : 'SELECT ';
 
             // SQL Server can't work with select * if group by is specified
             if (empty($this->QBSelect) && $this->QBGroupBy !== [] && is_array($this->QBGroupBy)) {
@@ -667,12 +691,12 @@ class Builder extends BaseBuilder
 
             $identityInFields = in_array($tableIdentity, $keys, true);
 
-            $fieldNames = array_map(static fn ($columnName) => trim($columnName, '"'), $keys);
+            $fieldNames = array_map(static fn ($columnName): string => trim($columnName, '"'), $keys);
 
             if (empty($constraints)) {
                 $tableIndexes = $this->db->getIndexData($table);
 
-                $uniqueIndexes = array_filter($tableIndexes, static function ($index) use ($fieldNames) {
+                $uniqueIndexes = array_filter($tableIndexes, static function ($index) use ($fieldNames): bool {
                     $hasAllFields = count(array_intersect($index->fields, $fieldNames)) === count($index->fields);
 
                     return $index->type === 'PRIMARY' && $hasAllFields;
@@ -680,7 +704,7 @@ class Builder extends BaseBuilder
 
                 // if no primary found then look for unique - since indexes have no order
                 if ($uniqueIndexes === []) {
-                    $uniqueIndexes = array_filter($tableIndexes, static function ($index) use ($fieldNames) {
+                    $uniqueIndexes = array_filter($tableIndexes, static function ($index) use ($fieldNames): bool {
                         $hasAllFields = count(array_intersect($index->fields, $fieldNames)) === count($index->fields);
 
                         return $index->type === 'UNIQUE' && $hasAllFields;
@@ -746,7 +770,7 @@ class Builder extends BaseBuilder
             $sql .= implode(
                 ",\n",
                 array_map(
-                    static fn ($key, $value) => $key . ($value instanceof RawSql ?
+                    static fn ($key, $value): string => $key . ($value instanceof RawSql ?
                         ' = ' . $value :
                     " = {$alias}.{$value}"),
                     array_keys($updateFields),
@@ -760,7 +784,7 @@ class Builder extends BaseBuilder
                 '(' . implode(
                     ', ',
                     array_map(
-                        static fn ($columnName) => $columnName === $tableIdentity
+                        static fn ($columnName): string => $columnName === $tableIdentity
                     ? "CASE WHEN {$alias}.{$columnName} IS NULL THEN (SELECT "
                     . 'isnull(IDENT_CURRENT(\'' . $fullTableName . '\')+IDENT_INCR(\''
                     . $fullTableName . "'),1)) ELSE {$alias}.{$columnName} END"

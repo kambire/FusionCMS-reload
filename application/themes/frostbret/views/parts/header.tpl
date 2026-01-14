@@ -41,12 +41,6 @@
 								</li>
 							{/if}
 						{/foreach}
-
-						{if $CI->user->isOnline() && hasPermission('view', 'store') && $CI->config->item('ucp_store')}
-							<li class="nav-item">
-								<a href="{$url}{$CI->config->item('ucp_store')}" class="nav-link {if $CI->uri->segment(1) == $CI->config->item('ucp_store')}nav-active{/if}" title="{lang('item_store', 'store')}">{lang('item_store', 'store')}</a>
-							</li>
-						{/if}
 					</ul>
 					</div>
 					<!-- Collapse.End -->

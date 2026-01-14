@@ -53,35 +53,40 @@ if (!function_exists('character_limiter')) {
     /**
      * Character Limiter
      *
-     * Limits the string based on the character count.  Preserves complete words
+     * Limits the string based on the character count. Preserves complete words
      * so the character count may not be exactly as specified.
      *
      * @param string $endChar the end character. Usually an ellipsis
      */
-    function character_limiter(string $str, int $n = 500, string $endChar = '&#8230;'): string
+    function character_limiter(string $string, int $limit = 500, string $endChar = '&#8230;'): string
     {
-        if (mb_strlen($str) < $n) {
-            return $str;
+        if (mb_strlen($string) < $limit) {
+            return $string;
         }
 
         // a bit complicated, but faster than preg_replace with \s+
-        $str = preg_replace('/ {2,}/', ' ', str_replace(["\r", "\n", "\t", "\x0B", "\x0C"], ' ', $str));
+        $string       = preg_replace('/ {2,}/', ' ', str_replace(["\r", "\n", "\t", "\x0B", "\x0C"], ' ', $string));
+        $stringLength = mb_strlen($string);
 
-        if (mb_strlen($str) <= $n) {
-            return $str;
+        if ($stringLength <= $limit) {
+            return $string;
         }
 
-        $out = '';
+        $output       = '';
+        $outputLength = 0;
+        $words        = explode(' ', trim($string));
 
-        foreach (explode(' ', trim($str)) as $val) {
-            $out .= $val . ' ';
-            if (mb_strlen($out) >= $n) {
-                $out = trim($out);
+        foreach ($words as $word) {
+            $output .= $word . ' ';
+            $outputLength = mb_strlen($output);
+
+            if ($outputLength >= $limit) {
+                $output = trim($output);
                 break;
             }
         }
 
-        return (mb_strlen($out) === mb_strlen($str)) ? $out : $out . $endChar;
+        return ($outputLength === $stringLength) ? $output : $output . $endChar;
     }
 }
 
@@ -140,7 +145,7 @@ if (!function_exists('entities_to_ascii')) {
      */
     function entities_to_ascii(string $str, bool $all = true): string
     {
-        if (preg_match_all('/\&#(\d+)\;/', $str, $matches)) {
+        if (preg_match_all('/\&#(\d+)\;/', $str, $matches) >= 1) {
             for ($i = 0, $s = count($matches[0]); $i < $s; $i++) {
                 $digits = $matches[1][$i];
                 $out = '';
@@ -204,7 +209,7 @@ if (!function_exists('word_censor')) {
                     "\\1{$replacement}\\3",
                     $str
                 );
-            } elseif (preg_match_all("/{$delim}(" . $badword . "){$delim}/i", $str, $matches, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE)) {
+            } elseif (preg_match_all("/{$delim}(" . $badword . "){$delim}/i", $str, $matches, PREG_PATTERN_ORDER | PREG_OFFSET_CAPTURE) >= 1) {
                 $matches = $matches[1];
 
                 for ($i = count($matches) - 1; $i >= 0; $i--) {
@@ -327,7 +332,7 @@ if (!function_exists('convert_accented_characters')) {
                 include(APPPATH . 'config/' . ENVIRONMENT . '/foreign_chars.php');
             }
 
-            if (empty($foreign_characters) or !is_array($foreign_characters)) {
+            if (empty($foreign_characters) || !is_array($foreign_characters)) {
                 $array_from = [];
                 $array_to = [];
 
@@ -367,7 +372,7 @@ if (!function_exists('word_wrap')) {
         // strip the entire chunk and replace it with a marker.
         $unwrap = [];
 
-        if (preg_match_all('|\{unwrap\}(.+?)\{/unwrap\}|s', $str, $matches)) {
+        if (preg_match_all('|\{unwrap\}(.+?)\{/unwrap\}|s', $str, $matches) >= 1) {
             for ($i = 0, $c = count($matches[0]); $i < $c; $i++) {
                 $unwrap[] = $matches[1][$i];
                 $str = str_replace($matches[0][$i], '{{unwrapped' . $i . '}}', $str);
@@ -542,9 +547,10 @@ if (!function_exists('reduce_multiples')) {
      */
     function reduce_multiples(string $str, string $character = ',', bool $trim = false): string
     {
-        $str = preg_replace('#' . preg_quote($character, '#') . '{2,}#', $character, $str);
+        $pattern = '#' . preg_quote($character, '#') . '{2,}#';
+        $str     = preg_replace($pattern, $character, $str);
 
-        return ($trim) ? trim($str, $character) : $str;
+        return $trim ? trim($str, $character) : $str;
     }
 }
 
@@ -728,38 +734,44 @@ if (!function_exists('excerpt')) {
     function excerpt(string $text, ?string $phrase = null, int $radius = 100, string $ellipsis = '...'): string
     {
         if (isset($phrase)) {
-            $phrasePos = stripos($text, $phrase);
-            $phraseLen = strlen($phrase);
+            $phrasePosition = mb_stripos($text, $phrase);
+            $phraseLength   = mb_strlen($phrase);
         } else {
-            $phrasePos = $radius / 2;
-            $phraseLen = 1;
+            $phrasePosition = $radius / 2;
+            $phraseLength   = 1;
         }
 
-        $pre = explode(' ', substr($text, 0, $phrasePos));
-        $pos = explode(' ', substr($text, $phrasePos + $phraseLen));
+        $beforeWords = explode(' ', mb_substr($text, 0, $phrasePosition));
+        $afterWords  = explode(' ', mb_substr($text, $phrasePosition + $phraseLength));
 
-        $prev = ' ';
-        $post = ' ';
+        $firstPartOutput = ' ';
+        $endPartOutput   = ' ';
+        $count           = 0;
+
+        foreach (array_reverse($beforeWords) as $beforeWord) {
+            $beforeWordLength = mb_strlen($beforeWord);
+
+            if (($beforeWordLength + $count + 1) < $radius) {
+                $firstPartOutput = ' ' . $beforeWord . $firstPartOutput;
+            }
+
+            $count = ++$count + $beforeWordLength;
+        }
+
         $count = 0;
 
-        foreach (array_reverse($pre) as $e) {
-            if ((strlen($e) + $count + 1) < $radius) {
-                $prev = ' ' . $e . $prev;
+        foreach ($afterWords as $afterWord) {
+            $afterWordLength = mb_strlen($afterWord);
+
+            if (($afterWordLength + $count + 1) < $radius) {
+                $endPartOutput .= $afterWord . ' ';
             }
-            $count = ++$count + strlen($e);
+
+            $count = ++$count + $afterWordLength;
         }
 
-        $count = 0;
+        $ellPre = $phrase !== null ? $ellipsis : '';
 
-        foreach ($pos as $s) {
-            if ((strlen($s) + $count + 1) < $radius) {
-                $post .= $s . ' ';
-            }
-            $count = ++$count + strlen($s);
-        }
-
-        $ellPre = $phrase ? $ellipsis : '';
-
-        return str_replace('  ', ' ', $ellPre . $prev . $phrase . $post . $ellipsis);
+        return str_replace('  ', ' ', $ellPre . $firstPartOutput . $phrase . $endPartOutput . $ellipsis);
     }
 }

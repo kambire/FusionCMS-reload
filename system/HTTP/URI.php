@@ -162,25 +162,26 @@ class URI
         ?string $fragment = null
     ): string {
         $uri = '';
-        if ($scheme !== null && $scheme !== '') {
+
+        if ((string) $scheme !== '') {
             $uri .= $scheme . '://';
         }
 
-        if ($authority !== null && $authority !== '') {
+        if ((string) $authority !== '') {
             $uri .= $authority;
         }
 
-        if (isset($path) && $path !== '') {
-            $uri .= substr($uri, -1, 1) !== '/'
-                ? '/' . ltrim($path, '/')
-                : ltrim($path, '/');
+        if ((string) $path !== '') {
+            $uri .= str_ends_with($uri, '/')
+                ? ltrim($path, '/')
+                : '/' . ltrim($path, '/');
         }
 
-        if ($query !== '' && $query !== null) {
+        if ((string) $query !== '') {
             $uri .= '?' . $query;
         }
 
-        if ($fragment !== '' && $fragment !== null) {
+        if ((string) $fragment !== '') {
             $uri .= '#' . $fragment;
         }
 
@@ -367,7 +368,7 @@ class URI
 
         // Don't add port if it's a standard port for
         // this scheme
-        if (! empty($this->port) && ! $ignorePort && $this->port !== $this->defaultPorts[$this->scheme]) {
+        if ((int) $this->port !== 0 && ! $ignorePort && $this->port !== ($this->defaultPorts[$this->scheme] ?? null)) {
             $authority .= ':' . $this->port;
         }
 
@@ -981,7 +982,7 @@ class URI
         // Encode characters
         $path = preg_replace_callback(
             '/(?:[^' . static::CHAR_UNRESERVED . ':@&=\+\$,\/;%]+|%(?![A-Fa-f0-9]{2}))/',
-            static fn (array $matches) => rawurlencode($matches[0]),
+            static fn (array $matches): string => rawurlencode($matches[0]),
             $path
         );
 
@@ -1127,9 +1128,9 @@ class URI
         $return = [];
         $query  = explode('&', $query);
 
-        $params = array_map(static fn (string $chunk) => preg_replace_callback(
+        $params = array_map(static fn (string $chunk): ?string => preg_replace_callback(
             '/^(?<key>[^&=]+?)(?:\[[^&=]*\])?=(?<value>[^&=]+)/',
-            static fn (array $match) => str_replace($match['key'], bin2hex($match['key']), $match[0]),
+            static fn (array $match): string => str_replace($match['key'], bin2hex($match['key']), $match[0]),
             urldecode($chunk)
         ), $query);
 
@@ -1137,7 +1138,8 @@ class URI
         parse_str($params, $result);
 
         foreach ($result as $key => $value) {
-            $return[hex2bin($key)] = $value;
+            // Array key might be int
+            $return[hex2bin((string) $key)] = $value;
         }
 
         return $return;

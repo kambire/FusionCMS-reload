@@ -52,7 +52,7 @@
         </div>
         
         <div class="form-group text-center mt-4">
-        <button type="submit" class="card-footer nice_button">
+        <button class="card-footer nice_button">
             {lang("login_button", "auth")}
         </button>
         </div>

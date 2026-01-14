@@ -14,9 +14,6 @@ class Teleport extends MX_Controller
     private array $characters;
     private int $total;
 
-	private const BLOCKED_MAP_ID_NORTHREND = 4;
-	private const BLOCKED_REQUIRED_LEVEL_MIN = 80;
-
     public function __construct()
     {
         parent::__construct();
@@ -35,10 +32,7 @@ class Teleport extends MX_Controller
      */
     private function init()
     {
-                $this->teleportLocations = array_values(array_filter(
-			$this->teleport_model->getTeleportLocations(),
-			fn(array $location) => !$this->isBlockedTeleportLocation($location)
-		));
+        $this->teleportLocations = $this->teleport_model->getTeleportLocations();
         $this->teleportMaps = $this->teleport_model->getTeleportMaps();
 
         $this->characters = $this->user->getCharacters($this->user->getId());
@@ -127,10 +121,6 @@ class Teleport extends MX_Controller
             die(lang("no_location", "teleport"));
         }
 
-		if ($this->isBlockedTeleportLocation($teleport_exists)) {
-			die(lang("blocked_location", "teleport"));
-		}
-
         $realmId = $teleport_exists['realm'];
         $faction = $this->realms->getRealm($realmId)->getCharacters()->getFaction($characterGuid);
 
@@ -190,21 +180,5 @@ class Teleport extends MX_Controller
         } else {
             return false;
         }
-    }
-
-    private function isBlockedTeleportLocation(array $location): bool
-    {
-        $locationName = strtolower((string)($location['name'] ?? ''));
-        if (str_contains($locationName, 'ulduar')) {
-            return true;
-        }
-
-        $mapId = (int)($location['map_id'] ?? 0);
-        $requiredLevel = (int)($location['required_level'] ?? 0);
-        if ($mapId === self::BLOCKED_MAP_ID_NORTHREND && $requiredLevel >= self::BLOCKED_REQUIRED_LEVEL_MIN) {
-            return true;
-        }
-
-        return false;
     }
 }

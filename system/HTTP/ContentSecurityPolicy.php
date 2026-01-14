@@ -111,7 +111,8 @@ class ContentSecurityPolicy
     protected $pluginTypes = [];
 
     /**
-     * Used for security enforcement
+     * A set of endpoints to which csp violation reports will be sent when
+     *  particular behaviors are prevented.
      *
      * @var string
      */
@@ -162,7 +163,7 @@ class ContentSecurityPolicy
     /**
      * Used for security enforcement
      *
-     * @var array
+     * @var list<string>
      */
     protected $validSources = [
         'self',
@@ -215,7 +216,7 @@ class ContentSecurityPolicy
 
     /**
      * An array of header info since we have
-     * to build ourself before passing to Response.
+     * to build ourselves before passing to Response.
      *
      * @var array
      */
@@ -567,6 +568,9 @@ class ContentSecurityPolicy
      *
      * @see http://www.w3.org/TR/CSP/#directive-report-uri
      *
+     * @param string $uri URL to send reports. Set `''` if you want to remove
+     *                     this directive at runtime.
+     *
      * @return $this
      */
     public function setReportURI(string $uri)
@@ -682,7 +686,7 @@ class ContentSecurityPolicy
         $pattern = '/(' . preg_quote($this->styleNonceTag, '/')
             . '|' . preg_quote($this->scriptNonceTag, '/') . ')/';
 
-        $body = preg_replace_callback($pattern, function ($match) {
+        $body = preg_replace_callback($pattern, function ($match): string {
             $nonce = $match[0] === $this->styleNonceTag ? $this->getStyleNonce() : $this->getScriptNonce();
 
             return "nonce=\"{$nonce}\"";

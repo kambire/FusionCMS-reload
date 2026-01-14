@@ -29,11 +29,6 @@
 					<div class="navbar-collapse collapse-primary collapse" collapse="navbar-primary">
 						<ul class="navbar-nav mx-auto">
 							{$menus.top}
-							{if $CI->user->isOnline() && hasPermission('view', 'store') && $CI->config->item('ucp_store')}
-								<li class="nav-item">
-									<a href="{$url}{$CI->config->item('ucp_store')}" class="nav-link" title="{lang('item_store', 'store')}">{lang('item_store', 'store')}</a>
-								</li>
-							{/if}
 						</ul>
 					</div>
 

@@ -189,32 +189,15 @@ class Crypto
      */
     public function salt(string $username, bool $hex = false): string
     {
-        // Retrieve salt for the user if it exists.
-        // If the external auth DB isn't configured (or the `account` table doesn't exist),
-        // fall back to generating a salt to avoid a fatal error.
-        try {
-            $saltColumn = column('account', 'salt');
-            if (!$saltColumn) {
-                throw new RuntimeException('Missing salt column mapping for account table');
-            }
+        // Retrieve salt for the user if it exists
+        $saltUser = CI::$APP->external_account_model->getConnection()
+            ->table(table('account'))
+            ->select('TRIM("\0" FROM ' . column('account', 'salt') . ') as salt')
+            ->where('username', $username)
+            ->get()->getRowArray();
 
-            $query = CI::$APP->external_account_model->getConnection()
-                ->table(table('account'))
-                ->select('HEX(' . $saltColumn . ') as salt_hex')
-                ->where('username', $username)
-                ->get();
-
-            if ($query) {
-                $saltUser = $query->getRowArray();
-                if ($saltUser && isset($saltUser['salt_hex']) && $saltUser['salt_hex']) {
-                    $saltBin = hex2bin($saltUser['salt_hex']);
-                    if ($saltBin !== false) {
-                        return $saltBin;
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            // ignore and generate a salt below
+        if ($saltUser && isset($saltUser['salt']) && $saltUser['salt']) {
+            return $saltUser['salt']; // Return the existing salt
         }
 
         if ($hex) {

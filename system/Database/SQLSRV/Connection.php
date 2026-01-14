@@ -15,6 +15,7 @@ namespace CodeIgniter\Database\SQLSRV;
 
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\Exceptions\DatabaseException;
+use CodeIgniter\Database\TableName;
 use stdClass;
 
 /**
@@ -164,6 +165,8 @@ class Connection extends BaseConnection
     /**
      * Keep or establish the connection if no queries have been sent for
      * a length of time exceeding the server's idle timeout.
+     *
+     * @return void
      */
     public function reconnect()
     {
@@ -173,6 +176,8 @@ class Connection extends BaseConnection
 
     /**
      * Close the database connection.
+     *
+     * @return void
      */
     protected function _close()
     {
@@ -211,7 +216,7 @@ class Connection extends BaseConnection
             return $sql .= ' AND [TABLE_NAME] LIKE ' . $this->escape($tableName);
         }
 
-        if ($prefixLimit === true && $this->DBPrefix !== '') {
+        if ($prefixLimit && $this->DBPrefix !== '') {
             $sql .= " AND [TABLE_NAME] LIKE '" . $this->escapeLikeString($this->DBPrefix) . "%' "
                 . sprintf($this->likeEscapeStr, $this->likeEscapeChar);
         }
@@ -221,12 +226,20 @@ class Connection extends BaseConnection
 
     /**
      * Generates a platform-specific query string so that the column names can be fetched.
+     *
+     * @param string|TableName $table
      */
-    protected function _listColumns(string $table = ''): string
+    protected function _listColumns($table = ''): string
     {
+        if ($table instanceof TableName) {
+            $tableName = $this->escape(strtolower($table->getActualTableName()));
+        } else {
+            $tableName = $this->escape($this->DBPrefix . strtolower($table));
+        }
+
         return 'SELECT [COLUMN_NAME] '
             . ' FROM [INFORMATION_SCHEMA].[COLUMNS]'
-            . ' WHERE  [TABLE_NAME] = ' . $this->escape($this->DBPrefix . $table)
+            . ' WHERE  [TABLE_NAME] = ' . $tableName
             . ' AND [TABLE_SCHEMA] = ' . $this->escape($this->schema);
     }
 
@@ -253,7 +266,7 @@ class Connection extends BaseConnection
             $obj->name = $row->index_name;
 
             $_fields     = explode(',', trim($row->index_keys));
-            $obj->fields = array_map(static fn ($v) => trim($v), $_fields);
+            $obj->fields = array_map(trim(...), $_fields);
 
             if (strpos($row->index_description, 'primary key located on') !== false) {
                 $obj->type = 'PRIMARY';
@@ -364,13 +377,47 @@ class Connection extends BaseConnection
 
             $retVal[$i]->max_length = $query[$i]->CHARACTER_MAXIMUM_LENGTH > 0
                 ? $query[$i]->CHARACTER_MAXIMUM_LENGTH
-                : $query[$i]->NUMERIC_PRECISION;
+                : (
+                $query[$i]->CHARACTER_MAXIMUM_LENGTH === -1
+                    ? 'max'
+                    : $query[$i]->NUMERIC_PRECISION
+                );
 
             $retVal[$i]->nullable = $query[$i]->IS_NULLABLE !== 'NO';
-            $retVal[$i]->default  = $query[$i]->COLUMN_DEFAULT;
+            $retVal[$i]->default  = $this->normalizeDefault($query[$i]->COLUMN_DEFAULT);
         }
 
         return $retVal;
+    }
+
+    /**
+     * Normalizes SQL Server COLUMN_DEFAULT values.
+     * Removes wrapping parentheses and handles basic conversions.
+     */
+    private function normalizeDefault(?string $default): ?string
+    {
+        if ($default === null) {
+            return null;
+        }
+
+        $default = trim($default);
+
+        // Remove outer parentheses (handles both single and double wrapping)
+        while (preg_match('/^\((.*)\)$/', $default, $matches)) {
+            $default = trim($matches[1]);
+        }
+
+        // Handle NULL literal
+        if (strcasecmp($default, 'NULL') === 0) {
+            return null;
+        }
+
+        // Handle string literals - remove quotes and unescape
+        if (preg_match("/^'(.*)'$/s", $default, $matches)) {
+            return str_replace("''", "'", $matches[1]);
+        }
+
+        return $default;
     }
 
     /**
@@ -436,6 +483,10 @@ class Connection extends BaseConnection
      */
     public function affectedRows(): int
     {
+        if ($this->resultID === false) {
+            return 0;
+        }
+
         return sqlsrv_rows_affected($this->resultID);
     }
 
@@ -540,11 +591,15 @@ class Connection extends BaseConnection
             return $this->dataCache['version'];
         }
 
-        if (! $this->connID || ($info = sqlsrv_server_info($this->connID)) === []) {
+        if (! $this->connID) {
             $this->initialize();
         }
 
-        return isset($info['SQLServerVersion']) ? $this->dataCache['version'] = $info['SQLServerVersion'] : false;
+        if (($info = sqlsrv_server_info($this->connID)) === []) {
+            return '';
+        }
+
+        return isset($info['SQLServerVersion']) ? $this->dataCache['version'] = $info['SQLServerVersion'] : '';
     }
 
     /**

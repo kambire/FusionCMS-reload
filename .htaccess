@@ -1,10 +1,10 @@
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^(.*)$ index.php/$1 [L]
-</IfModule>
+<ifModule mod_rewrite.c>
+	RewriteEngine On
+        
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^(.*)$ ./index.php?/$1 [L]
+</ifModule>
 # Required Rewrite Rule 
 
 # We should always hide Sensitive Information
@@ -90,10 +90,10 @@ ModPagespeedEnableFilters collapse_whitespace,remove_comments
     ## Enable expiration control
     ExpiresActive On
 
-    ## CSS and JS expiration: disabled for development
-    ExpiresByType text/css "access plus 0 seconds"
-    ExpiresByType application/javascript "access plus 0 seconds"
-    ExpiresByType application/x-javascript "access plus 0 seconds"
+    ## CSS and JS expiration: 1 week after request
+    ExpiresByType text/css "now plus 1 week"
+    ExpiresByType application/javascript "now plus 1 week"
+    ExpiresByType application/x-javascript "now plus 1 week"
 
     ## Image files expiration: 1 month after request
     ExpiresByType image/bmp "now plus 1 month"

@@ -496,7 +496,7 @@ class External_account_model extends CI_Model
 
             $query = $this->connection->table(table("account"))->select(column("account", "id", true))->where(column("account", "username"), $username)->get();
 
-            if ($query && method_exists($query, 'getNumRows') && $query->getNumRows() > 0) {
+            if ($query->getNumRows() > 0) {
                 $result = $query->getResultArray();
 
                 return $result[0]["id"];
@@ -522,7 +522,7 @@ class External_account_model extends CI_Model
 
             $query = $this->connection->table(table("account"))->select(column("account", "username", true))->where([column("account", "id") => $id])->get();
 
-            if ($query && method_exists($query, 'getNumRows') && $query->getNumRows() > 0) {
+            if ($query->getNumRows() > 0) {
                 $result = $query->getResultArray();
 
                 return $result[0]["username"];

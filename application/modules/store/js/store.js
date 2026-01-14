@@ -379,11 +379,6 @@ var Store = {
 				$("#info_" + priceType).html(this[priceType]);
 			}
 
-			if($("#store_info_" + priceType).length)
-			{
-				$("#store_info_" + priceType).html(this[priceType]);
-			}
-
 			Store.Filter.updatePrices();
 		},
 
@@ -414,11 +409,6 @@ var Store = {
 				if($("#info_" + priceType).length)
 				{
 					$("#info_" + priceType).html(this[priceType]);
-				}
-
-				if($("#store_info_" + priceType).length)
-				{
-					$("#store_info_" + priceType).html(this[priceType]);
 				}
 
 				Store.Filter.updatePrices();

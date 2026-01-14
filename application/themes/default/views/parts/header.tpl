@@ -1,8 +1,53 @@
 {strip}
 
-{assign var=user_display_name value=(($CI->user->isOnline()) ? $CI->user->getNickname() : lang('guest', 'sidebox_visitors'))}
-{assign var=user_avatar_alt value=sprintf(lang('global_user_avatar', 'theme'), $user_display_name)}
-{assign var=user_avatar_src value=(($CI->user->isOnline()) ? $CI->user->getAvatar() : ($url|cat:basename($APPPATH)|cat:'/images/avatars/default.gif'))}
+{* Layout *}
+{$layout = "{$theme_path}views{$DS}layouts{$DS}nav_item.tpl"}
+
+{capture assign=user_nickname}
+	{sprintf(lang('global_user_avatar', 'theme'), ($CI->user->isOnline()) ? $CI->user->getNickname() : lang('guest', 'sidebox_visitors'))}
+{/capture}
+
+{capture assign=user_avatar}
+	<img width="25" height="25" alt="{$user_nickname}" src="{if $CI->user->isOnline()}{$CI->user->getAvatar()}{else}{$url}{basename($APPPATH)}/images/avatars/default.gif{/if}" />
+{/capture}
+
+{capture assign=user_dropdown}
+	<ul class="dropdown-menu">
+		{if $CI->user->isOnline()}
+			<li><a href="{$url}ucp" class="dropdown-item" title="{lang('account', 'main')}">{lang('account', 'main')}</a></li>
+			<li><a href="{$url}logout" class="dropdown-item" title="{lang('logout', 'main')}">{lang('logout', 'main')}</a></li>
+		{else}
+			<li><a href="{$url}login" class="dropdown-item" title="{lang('login', 'main')}">{lang('login', 'main')}</a></li>
+			<li><a href="{$url}register" class="dropdown-item" title="{lang('register', 'main')}">{lang('register', 'main')}</a></li>
+		{/if}
+	</ul>
+{/capture}
+
+{capture assign=user_bar}
+	<div class="userbar">
+		<div class="userbar-avatar">
+			<a href="{$url}ucp/avatar" title="{$user_nickname}">{$user_avatar}</a>
+		</div>
+
+		<div class="userbar-info">
+			<div class="info-username">{($CI->user->isOnline()) ? $CI->user->getNickname() : lang('guest', 'sidebox_visitors')}</div>
+			<div class="info-dropdown">
+				<div class="dropdown">
+					<a class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-duotone fa-bars"></i></a>
+					{$user_dropdown}
+				</div>
+			</div>
+		</div>
+	</div>
+{/capture}
+
+{capture assign=user_menu}
+	{* Set item *}
+	{$item = ['id' => '999', 'link' => false, 'name' => $user_nickname, 'content' => $user_avatar, 'dropdown' => true, 'dropdownMenu' => $user_dropdown]}
+
+	{* Build item *}
+	{include file=$layout _item=$item}
+{/capture}
 
 {/strip}
 
@@ -14,48 +59,12 @@
 	</div>
 
 	<div class="offcanvas-body">
-		<div class="userbar">
-			<div class="userbar-avatar">
-				<a href="{$url}ucp/avatar" title="{$user_avatar_alt}">
-					<img width="25" height="25" alt="{$user_avatar_alt}" src="{$user_avatar_src}" />
-				</a>
-			</div>
-
-			<div class="userbar-info">
-				<div class="info-username">{$user_display_name}</div>
-				<div class="info-dropdown">
-					<div class="dropdown">
-						<a class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-duotone fa-bars"></i></a>
-						<ul class="dropdown-menu">
-							{if $CI->user->isOnline()}
-								<li><a href="{$url}ucp" class="dropdown-item" title="{lang('account', 'main')}">{lang('account', 'main')}</a></li>
-								<li><a href="{$url}logout" class="dropdown-item" title="{lang('logout', 'main')}">{lang('logout', 'main')}</a></li>
-							{else}
-								<li><a href="{$url}login" class="dropdown-item" title="{lang('login', 'main')}">{lang('login', 'main')}</a></li>
-								<li><a href="{$url}register" class="dropdown-item" title="{lang('register', 'main')}">{lang('register', 'main')}</a></li>
-							{/if}
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
+		{$user_bar}
 
 		<!-- Navbar.Start -->
 		<nav class="navbar">
 			<!-- Nav.Start -->
-			<ul class="navbar-nav">
-				{$menus.top}
-				{if $CI->user->isOnline() && $CI->user->isStaff() && hasPermission('view', 'admin')}
-					<li class="nav-item">
-						<a href="{$url}admin" class="nav-link" title="Admin">Admin</a>
-					</li>
-				{/if}
-				{if $CI->user->isOnline() && hasPermission('view', 'store') && $CI->config->item('ucp_store')}
-					<li class="nav-item">
-						<a href="{$url}{$CI->config->item('ucp_store')}" class="nav-link" title="{lang('item_store', 'store')}">{lang('item_store', 'store')}</a>
-					</li>
-				{/if}
-			</ul>
+			<ul class="navbar-nav">{$menus.top}</ul>
 			<!-- Nav.End -->
 		</nav>
 		<!-- Navbar.End -->
@@ -85,34 +94,7 @@
 					<!-- Collapse.Start -->
 					<div class="navbar-collapse collapse">
 						<!-- Nav.Start -->
-						<ul class="navbar-nav ms-auto">
-							{$menus.top}
-							{if $CI->user->isOnline() && $CI->user->isStaff() && hasPermission('view', 'admin')}
-								<li class="nav-item">
-									<a href="{$url}admin" class="nav-link" title="Admin">Admin</a>
-								</li>
-							{/if}
-							{if $CI->user->isOnline() && hasPermission('view', 'store') && $CI->config->item('ucp_store')}
-								<li class="nav-item">
-									<a href="{$url}{$CI->config->item('ucp_store')}" class="nav-link" title="{lang('item_store', 'store')}">{lang('item_store', 'store')}</a>
-								</li>
-							{/if}
-
-							<li class="nav-item dropdown">
-								<a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="{$user_avatar_alt}">
-									<img width="25" height="25" alt="{$user_avatar_alt}" src="{$user_avatar_src}" />
-								</a>
-								<ul class="dropdown-menu dropdown-menu-end">
-									{if $CI->user->isOnline()}
-										<li><a href="{$url}ucp" class="dropdown-item" title="{lang('account', 'main')}">{lang('account', 'main')}</a></li>
-										<li><a href="{$url}logout" class="dropdown-item" title="{lang('logout', 'main')}">{lang('logout', 'main')}</a></li>
-									{else}
-										<li><a href="{$url}login" class="dropdown-item" title="{lang('login', 'main')}">{lang('login', 'main')}</a></li>
-										<li><a href="{$url}register" class="dropdown-item" title="{lang('register', 'main')}">{lang('register', 'main')}</a></li>
-									{/if}
-								</ul>
-							</li>
-						</ul>
+						<ul class="navbar-nav ms-auto">{$menus.top}{$user_menu}</ul>
 						<!-- Nav.End -->
 					</div>
 					<!-- Collapse.End -->
